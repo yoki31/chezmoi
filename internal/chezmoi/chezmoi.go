@@ -65,7 +65,7 @@ var (
 )
 
 // knownPrefixedFiles is a set of known filenames with the .chezmoi prefix.
-var knownPrefixedFiles = newStringSet(
+var knownPrefixedFiles = newSet[string](
 	Prefix+".json"+TemplateSuffix,
 	Prefix+".toml"+TemplateSuffix,
 	Prefix+".yaml"+TemplateSuffix,

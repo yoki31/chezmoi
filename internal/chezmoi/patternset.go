@@ -13,15 +13,15 @@ import (
 
 // An patternSet is a set of patterns.
 type patternSet struct {
-	includePatterns stringSet
-	excludePatterns stringSet
+	includePatterns set[string]
+	excludePatterns set[string]
 }
 
 // newPatternSet returns a new patternSet.
 func newPatternSet() *patternSet {
 	return &patternSet{
-		includePatterns: newStringSet(),
-		excludePatterns: newStringSet(),
+		includePatterns: newSet[string](),
+		excludePatterns: newSet[string](),
 	}
 }
 
@@ -51,7 +51,7 @@ func (ps *patternSet) add(pattern string, include bool) error {
 // glob returns all matches in fileSystem.
 func (ps *patternSet) glob(fileSystem vfs.FS, prefix string) ([]string, error) {
 	// FIXME use AbsPath and RelPath
-	allMatches := newStringSet()
+	allMatches := newSet[string]()
 	for includePattern := range ps.includePatterns {
 		matches, err := doublestar.Glob(fileSystem, prefix+includePattern)
 		if err != nil {
