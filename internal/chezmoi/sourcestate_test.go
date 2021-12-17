@@ -1,5 +1,8 @@
 package chezmoi
 
+// FIXME add tests with .chezmoiignore in a subdirectory
+// FIXME add tests with .chezmoiremove in a subdirectory
+
 import (
 	"archive/tar"
 	"bytes"
@@ -1167,6 +1170,14 @@ func TestSourceStateRead(t *testing.T) {
 						targetRelPath: NewRelPath("file"),
 					},
 				}),
+				withRemove(
+					&patternSet{
+						includePatterns: map[string]struct{}{
+							"file": {},
+						},
+						excludePatterns: map[string]struct{}{},
+					},
+				),
 			),
 		},
 		{
@@ -1192,6 +1203,14 @@ func TestSourceStateRead(t *testing.T) {
 					mustNewPatternSet(t, map[string]bool{
 						"file2": true,
 					}),
+				),
+				withRemove(
+					&patternSet{
+						includePatterns: map[string]struct{}{
+							"file*": {},
+						},
+						excludePatterns: map[string]struct{}{},
+					},
 				),
 			),
 		},
@@ -1582,6 +1601,12 @@ func withEntries(sourceEntries map[RelPath]SourceStateEntry) SourceStateOption {
 func withIgnore(ignore *patternSet) SourceStateOption {
 	return func(s *SourceState) {
 		s.ignore = ignore
+	}
+}
+
+func withRemove(remove *patternSet) SourceStateOption {
+	return func(s *SourceState) {
+		s.remove = remove
 	}
 }
 

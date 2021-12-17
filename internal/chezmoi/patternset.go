@@ -1,5 +1,8 @@
 package chezmoi
 
+// FIXME use AbsPath and RelPath
+// FIXME make nicer constructors and use them in sourcestate_test.go
+
 import (
 	"fmt"
 	"path"
