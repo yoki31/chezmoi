@@ -77,6 +77,7 @@ type Config struct {
 	Mode               chezmoi.Mode                    `mapstructure:"mode"`
 	Pager              string                          `mapstructure:"pager"`
 	PINEntry           pinEntryConfig                  `mapstructure:"pinentry"`
+	Progress           bool                            `mapstructure:"progress"`
 	Safe               bool                            `mapstructure:"safe"`
 	SourceDirAbsPath   chezmoi.AbsPath                 `mapstructure:"sourceDir"`
 	Template           templateConfig                  `mapstructure:"template"`
@@ -1258,6 +1259,7 @@ func (c *Config) newRootCmd() (*cobra.Command, error) {
 	persistentFlags.VarP(&c.DestDirAbsPath, "destination", "D", "Set destination directory")
 	persistentFlags.Var(&c.Mode, "mode", "Mode")
 	persistentFlags.Var(&c.persistentStateAbsPath, "persistent-state", "Set persistent state file")
+	persistentFlags.BoolVar(&c.Progress, "progress", c.Progress, "show progress")
 	persistentFlags.BoolVar(&c.Safe, "safe", c.Safe, "Safely replace files and symlinks")
 	persistentFlags.VarP(&c.SourceDirAbsPath, "source", "S", "Set source directory")
 	persistentFlags.Var(&c.UseBuiltinAge, "use-builtin-age", "Use builtin age")
@@ -1269,6 +1271,7 @@ func (c *Config) newRootCmd() (*cobra.Command, error) {
 		"color":           "color",
 		"destDir":         "destination",
 		"persistentState": "persistent-state",
+		"progress":        "progress",
 		"mode":            "mode",
 		"safe":            "safe",
 		"sourceDir":       "source",
@@ -1403,6 +1406,7 @@ func (c *Config) newSourceState(
 		chezmoi.WithLogger(&sourceStateLogger),
 		chezmoi.WithMode(c.Mode),
 		chezmoi.WithPriorityTemplateData(c.Data),
+		chezmoi.WithProgress(c.Progress),
 		chezmoi.WithSourceDir(c.SourceDirAbsPath),
 		chezmoi.WithSystem(c.sourceSystem),
 		chezmoi.WithTemplateFuncs(c.templateFuncs),

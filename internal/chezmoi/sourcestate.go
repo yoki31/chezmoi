@@ -93,6 +93,7 @@ type SourceState struct {
 	templateOptions         []string
 	templates               map[string]*template.Template
 	externals               map[RelPath]External
+	progress                bool
 }
 
 // A SourceStateOption sets an option on a source state.
@@ -165,6 +166,13 @@ func WithMode(mode Mode) SourceStateOption {
 func WithPriorityTemplateData(priorityTemplateData map[string]interface{}) SourceStateOption {
 	return func(s *SourceState) {
 		RecursiveMerge(s.priorityTemplateData, priorityTemplateData)
+	}
+}
+
+// WithProgress sets whether to draw a progress bar when downloading externals.
+func WithProgress(progress bool) SourceStateOption {
+	return func(s *SourceState) {
+		s.progress = progress
 	}
 }
 
