@@ -31,6 +31,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/twpayne/chezmoi/v2/internal/chezmoilog"
+	"github.com/twpayne/chezmoi/v2/internal/progress"
 )
 
 // An ExternalType is a type of external source.
@@ -1192,13 +1193,27 @@ func (s *SourceState) getExternalDataRaw(
 	if err != nil {
 		return nil, err
 	}
-	data, err := io.ReadAll(resp.Body)
+	if resp.StatusCode < http.StatusOK || http.StatusMultipleChoices <= resp.StatusCode {
+		_ = resp.Body.Close()
+		return nil, fmt.Errorf("%s: %s: %s", externalRelPath, external.URL, resp.Status)
+	}
+
+	var reader io.Reader = resp.Body
+	if s.progress {
+		proxyReader := progress.NewProxyReader(reader)
+		spinner, err := progress.NewSpinner(func() int {
+			return proxyReader.Stats().ReadCalls
+		}, fmt.Sprintf("\r{{ . }} {{ %q }}", external.URL))
+		if err != nil {
+			panic(err)
+		}
+		defer progress.PeriodicWriteStringerIfChanged(os.Stderr, 50*time.Millisecond, "\n", spinner)
+		reader = proxyReader
+	}
+	data, err := io.ReadAll(reader)
 	resp.Body.Close()
 	if err != nil {
 		return nil, err
-	}
-	if resp.StatusCode < http.StatusOK || http.StatusMultipleChoices <= resp.StatusCode {
-		return nil, fmt.Errorf("%s: %s: %s", externalRelPath, external.URL, resp.Status)
 	}
 
 	cachedExternalData, err := externalCacheFormat.Marshal(&externalCacheEntry{
