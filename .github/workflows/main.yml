@@ -48,11 +48,11 @@ jobs:
       with:
         fetch-depth: 1
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: go
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v1
+      uses: github/codeql-action/analyze@v2
   concurrency-hammer:
     # run the full chezmoi test suite multiple times with Go's race detector
     # enabled in the hope that this will catch concurrency issues
