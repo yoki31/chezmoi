@@ -32,7 +32,7 @@ require (
 	github.com/rs/zerolog v1.26.1
 	github.com/sergi/go-diff v1.1.0
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/afero v1.8.0
+	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/stretchr/objx v0.3.0 // indirect
@@ -46,7 +46,6 @@ require (
 	go.etcd.io/bbolt v1.3.6
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0
-	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
