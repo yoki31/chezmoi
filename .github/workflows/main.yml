@@ -20,7 +20,7 @@ jobs:
       code: ${{ steps.filter.outputs.code }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Check changes
       id: filter
       uses: dorny/paths-filter@v2
@@ -44,7 +44,7 @@ jobs:
       security-events: write
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Initialize CodeQL
@@ -65,7 +65,7 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test
       run: |
         ( cd assets/docker && ./test.sh alpine )
@@ -92,7 +92,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test
       run: |
         ( cd assets/docker && ./test.sh archlinux )
@@ -104,7 +104,7 @@ jobs:
       VAGRANT_BOX: debian11-i386
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Vagrant Boxes
       uses: actions/cache@v2
       with:
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test
       run: |
         ( cd assets/docker && ./test.sh fedora )
@@ -133,7 +133,7 @@ jobs:
       VAGRANT_BOX: freebsd13
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Vagrant Boxes
       uses: actions/cache@v2
       with:
@@ -154,7 +154,7 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -190,7 +190,7 @@ jobs:
       VAGRANT_BOX: openbsd6
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Vagrant Boxes
       uses: actions/cache@v2
       with:
@@ -209,7 +209,7 @@ jobs:
       VAGRANT_BOX: openindiana
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Vagrant Boxes
       uses: actions/cache@v2
       with:
@@ -236,7 +236,7 @@ jobs:
         sudo install -m 755 age/age /usr/local/bin
         sudo install -m 755 age/age-keygen /usr/local/bin
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Cache Go modules
@@ -337,7 +337,7 @@ jobs:
       with:
         go-version: 1.16.x
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -374,7 +374,7 @@ jobs:
         go install golang.org/dl/go1.18beta2@latest
         go1.18beta2 download
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -407,7 +407,7 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -436,7 +436,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Test
       run: |
         ( cd assets/docker && ./test.sh voidlinux )
@@ -448,7 +448,7 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Go modules
       uses: actions/cache@v2
       with:
@@ -477,7 +477,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Lint
       uses: golangci/golangci-lint-action@v2
       with:
@@ -512,7 +512,7 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Cache Go modules
