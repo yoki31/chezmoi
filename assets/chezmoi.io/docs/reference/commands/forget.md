@@ -1,9 +1,10 @@
 # `forget` *target*...
 
-Remove *target*s from the source state, i.e. stop managing them.
+Remove *target*s from the source state, i.e. stop managing them. *target*s must
+have entries in the source state. They cannot be externals.
 
-!!! example
+## Examples
 
-    ```console
-    $ chezmoi forget ~/.bashrc
-    ```
+```sh
+chezmoi forget ~/.bashrc
+```

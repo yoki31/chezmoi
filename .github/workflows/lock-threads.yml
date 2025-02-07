@@ -1,0 +1,27 @@
+name: lock-threads
+
+on:
+  schedule:
+  - cron: 17 2 * * *
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  action:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: dessant/lock-threads@1bf7ec25051fe7c00bdd17e6a7cf3d7bfb7dc771
+      with:
+        process-only: issues, prs
+        issue-lock-reason: resolved
+        issue-inactive-days: 7
+        pr-lock-reason: resolved
+        pr-inactive-days: 7
+        log-output: true

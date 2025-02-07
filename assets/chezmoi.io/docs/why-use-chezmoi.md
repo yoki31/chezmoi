@@ -6,8 +6,8 @@ Dotfile managers give you the combined benefit of a consistent environment
 everywhere with an undo command and a restore from backup.
 
 As the core of our development environments become increasingly standardized
-(e.g. using git at both home and work), and we further customize them with our,
-at the same time we increasingly work in ephemeral environments like Docker
+(e.g. using git at both home and work), and we further customize them, at the
+same time we increasingly work in ephemeral environments like Docker
 containers, virtual machines, and GitHub Codespaces.
 
 In the same way that nobody would use an editor without an undo command, or
@@ -29,14 +29,31 @@ you work in.
     safe. Overall, I love the way Chezmoi fits so perfectly into the niche of
     managing dotfiles.
 
-    - [@mike_kasberg](https://www.mikekasberg.com/blog/2021/05/12/my-dotfiles-story.html)
+    — [@mike_kasberg](https://www.mikekasberg.com/blog/2021/05/12/my-dotfiles-story.html)
+
+!!! quote
+
+    I had initially been turned off when I first encountered [chezmoi], because
+    [chezmoi] seemed overkill for (what appeared to me) a simple task.
+
+    But the problem of managing a relatively small number of dotfiles across a
+    relatively small number of machines with small differences between them and
+    keeping them up to date proved to be _MUCH_ more complex than I imagined.
+    Copy things around by hand, and then later distributing them via source
+    control got hairy very quickly.
+
+    I finally realized all those features were absolutely necessary to manage
+    things sanely, and once I took some time to learn how to do things with
+    chezmoi, I have never looked back.
+
+    — [njt](https://news.ycombinator.com/item?id=31015669)
 
 !!! quote
 
     Regular reminder that chezmoi is the best dotfile manager utility I've used
     and you can too
 
-    — [@mbbroberg](https://twitter.com/mbbroberg/status/1355644967625125892)
+    — @mbbroberg
 
 If you're using any of the following methods:
 
@@ -75,7 +92,7 @@ to machine differences, if needed.
     and more, but it was easier to keep it private for security, I'm ok mostly
     though. I'm using chezmoi and it's easier now
 
-    — [@sheldon_hull](https://twitter.com/sheldon_hull/status/1308139570597371907)
+    — @sheldon_hull
 
 If your system stores secrets in plain text, then you must be very careful about
 where you clone your dotfiles. If you clone them on your work machine then
@@ -96,7 +113,7 @@ machine.
     I've offloaded my dotfiles deployment from a homespun shell script to chezmoi.
     I'm quite happy with this decision.
 
-    — [@gotgenes](https://twitter.com/gotgenes/status/1251008845163319297)
+    — @gotgenes
 
 !!! quote
 
@@ -105,7 +122,7 @@ machine.
 
     in case you're wondering I have written 0 code
 
-    — [@buritica](https://twitter.com/buritica/status/1361062902451630089)
+    — @buritica
 
 !!! quote
 

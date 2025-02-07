@@ -1,0 +1,85 @@
+{{- $latestRelease := gitHubLatestRelease "twpayne/chezmoi" -}}
+{{- $version := $latestRelease.Name | trimPrefix "v" -}}
+# chezmoi
+
+Manage your dotfiles across multiple diverse machines, securely.
+
+The latest version of chezmoi is {{ $version }} ([release notes]({{
+$latestRelease.HTMLURL }}), [release history](reference/release-history.md)).
+
+## What does chezmoi do?
+
+chezmoi helps you manage your personal configuration files (dotfiles, like
+`~/.gitconfig`) across multiple machines.
+
+chezmoi provides many features beyond symlinking or using a bare git repo
+including:
+
+* templates (to handle small differences between machines)
+* password manager support (to store your secrets securely)
+* importing files from archives (great for shell and editor plugins)
+* full file encryption (using gpg or age)
+* running scripts (to handle everything else)
+
+With chezmoi, pronounced /ʃeɪ mwa/ (shay-mwa), you can install chezmoi and your
+dotfiles from your GitHub dotfiles repo on a new, empty machine with a single
+command:
+
+```sh
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
+```
+
+As well as the `curl | sh` installation, you can [install chezmoi with your
+favorite package manager](install.md).
+
+Updating your dotfiles on any machine is a single command:
+
+```sh
+chezmoi update
+```
+
+chezmoi runs on all popular operating systems, is distributed as a single
+statically-linked binary with no dependencies, and does not require root access.
+
+## How do I start with chezmoi?
+
+[Install chezmoi](install.md) then read the [quick start guide](quick-start.md).
+The [user guide](user-guide/setup.md) covers most common tasks. For a full
+description, consult the [reference](reference/index.md).
+
+## Should I use chezmoi?
+
+See what other people think about chezmoi by reading
+[articles](links/articles.md), listening to [podcasts](links/podcasts.md), and
+watching [videos](links/videos.md) about chezmoi. Read how [chezmoi compares to
+other dotfile managers](comparison-table.md). Explore other people's [dotfile
+repos that use chezmoi](links/dotfile-repos.md).
+
+## How do I get help using chezmoi?
+
+chezmoi has extensive documentation. First, use the search bar at the top of
+this page using a few, short, and specific keywords related to your problem.
+
+chezmoi is an open source project with tens of thousands of users, so it is very
+likely that someone else has already encountered and solved your problem. Search
+[chezmoi's GitHub repo](https://github.com/twpayne/chezmoi) for issues and
+discussions with keywords related to your problem.
+
+If your question is still unanswered, please [open a GitHub issue for
+support](https://github.com/twpayne/chezmoi/issues/new?assignees=&labels=support&projects=&template=01_support_request.md&title=).
+
+## I like chezmoi. How do I say thanks?
+
+Please [give chezmoi a star on
+GitHub](https://github.com/twpayne/chezmoi/stargazers).
+
+[Share chezmoi](links/social-media.md) and, if you're happy to share your public
+dotfiles repo, then [tag your repo with `chezmoi`](links/dotfile-repos.md).
+
+[Contributions are very welcome](developer-guide/contributing-changes.md) and
+every [bug report, support request, and feature
+request](https://github.com/twpayne/chezmoi/issues/new/choose) helps make
+chezmoi better. Thank you :)
+
+chezmoi does not accept financial contributions. Instead, please make a donation
+to a charity or cause of your choice.

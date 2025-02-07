@@ -1,0 +1,87 @@
+# test exit template function
+exec chezmoi execute-template --init '{{ exit 0 }}'
+! exec chezmoi execute-template --init '{{ exit 1 }}'
+
+# test promptBoolOnce template function with execute-template --init
+exec chezmoi execute-template --init --promptBool bool=true '{{ promptBoolOnce . "bool" "bool" }}'
+stdout true
+
+# test promptChoiceOnce template function with execute-template --init
+exec chezmoi execute-template --init --promptChoice choice=one '{{ promptChoiceOnce . "choice" "choice" (list "one" "two" "three") }}'
+stdout one
+
+# test promptIntOnce template function with execute-template --init
+exec chezmoi execute-template --init --promptInt int=1 '{{ promptIntOnce . "int" "int" }}'
+stdout 1
+
+# test promptStringOnce template function with execute-template --init
+exec chezmoi execute-template --init --promptString string=value '{{ promptStringOnce . "string" "string" }}'
+stdout value
+
+# test writeToStdout template function
+exec chezmoi execute-template --init '{{ writeToStdout "string" }}'
+stdout string
+
+# test prompt*Once functions without existing data
+stdin golden/input
+exec chezmoi init --no-tty
+cmp ${CHEZMOICONFIGDIR}/chezmoi.toml golden/chezmoi.toml
+
+chhome home2/user
+
+# test prompt*Once functions with existing data
+exec chezmoi init
+cmp ${CHEZMOICONFIGDIR}/chezmoi.toml golden/chezmoi.toml
+
+chhome home3/user
+
+# test prompt*Once functions with existing data and nested keys
+exec chezmoi init
+cmp ${CHEZMOICONFIGDIR}/chezmoi.toml golden/chezmoi.toml
+
+-- golden/chezmoi.toml --
+[data]
+    bool = true
+    int = 1
+    string = "value"
+-- golden/input --
+true
+1
+value
+-- home/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+{{ $bool := promptBoolOnce . "bool" "bool" -}}
+{{ $int := promptIntOnce . "int" "int" -}}
+{{ $string := promptStringOnce . "string" "string" -}}
+
+[data]
+    bool = {{ $bool }}
+    int = {{ $int }}
+    string = {{ $string | quote }}
+-- home2/user/.config/chezmoi/chezmoi.toml --
+[data]
+    bool = true
+    int = 1
+    string = "value"
+-- home2/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+{{ $bool := promptBoolOnce . "bool" "bool" -}}
+{{ $int := promptIntOnce . "int" "int" -}}
+{{ $string := promptStringOnce . "string" "string" -}}
+
+[data]
+    bool = {{ $bool }}
+    int = {{ $int }}
+    string = {{ $string | quote }}
+-- home3/user/.config/chezmoi/chezmoi.toml --
+[data]
+    nested.bool = true
+    nested.int = 1
+    nested.string = "value"
+-- home3/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+{{ $bool := promptBoolOnce . "nested.bool" "bool" -}}
+{{ $int := promptIntOnce . "nested.int" "int" -}}
+{{ $string := promptStringOnce . "nested.string" "string" -}}
+
+[data]
+    bool = {{ $bool }}
+    int = {{ $int }}
+    string = {{ $string | quote }}

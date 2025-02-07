@@ -1,9 +1,23 @@
-# `unmanaged`
+# `unmanaged` [*path*...]
 
-List all unmanaged files in the destination directory.
+List all unmanaged files in *path*s. When no *path*s are supplied, list all
+unmanaged files in the destination directory.
 
-!!! example
+It is an error to supply *path*s that are not found on the filesystem.
 
-    ```console
-    $ chezmoi unmanaged
-    ```
+## Common flags
+
+### `-p`, `--path-style` *style*
+
+--8<-- "common-flags/path-style.md:no-source-tree"
+
+### `-t`, `--tree`
+
+--8<-- "common-flags/tree.md"
+
+## Examples
+
+```sh
+chezmoi unmanaged
+chezmoi unmanaged ~/.config/chezmoi ~/.ssh
+```

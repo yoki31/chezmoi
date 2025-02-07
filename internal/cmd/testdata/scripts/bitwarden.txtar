@@ -1,0 +1,86 @@
+mockcommand bin/bw
+mockcommand bin/bws
+[windows] unix2dos golden/bitwarden-attachment
+
+# test bitwarden template function
+exec chezmoi execute-template '{{ (bitwarden "item" "example.com").login.password }}'
+stdout ^password-value$
+
+# test bitwardenFields template function
+exec chezmoi execute-template '{{ (bitwardenFields "item" "example.com").Hidden.value }}'
+stdout ^hidden-value$
+
+# test bitwardenAttachment template function
+exec chezmoi execute-template '{{ (bitwardenAttachment "filename" "item-id") }}'
+cmp stdout golden/bitwarden-attachment
+
+# test bitwardenAttachmentByRef template function
+exec chezmoi execute-template '{{ (bitwardenAttachmentByRef "filename" "item" "example.com") }}'
+cmp stdout golden/bitwarden-attachment
+
+# test bitwardenSecrets template function
+exec chezmoi execute-template '{{ (bitwardenSecrets "be8e0ad8-d545-4017-a55a-b02f014d4158" "0.48c78342-1635-48a6-accd-afbe01336365.C0tMmQqHnAp1h0gL8bngprlPOYutt0:B3h5D+YgLvFiQhWkIq6Bow==").value }}'
+stdout '^0\.982492bc-7f37-4475-9e60$'
+
+-- bin/bw.yaml --
+responses:
+- args: 'get item example.com'
+  response: |
+    {
+      "object": "item",
+      "id": "bf22e4b4-ae4a-4d1c-8c98-ac620004b628",
+      "organizationId": null,
+      "folderId": null,
+      "type": 1,
+      "name": "example.com",
+      "notes": null,
+      "favorite": false,
+      "fields": [
+        {
+          "name": "Text",
+          "value": "text-value",
+          "type": 0
+        },
+        {
+          "name": "Hidden",
+          "value": "hidden-value",
+          "type": 1
+        }
+      ],
+      "login": {
+        "username": "username-value",
+        "password": "password-value",
+        "totp": null,
+        "passwordRevisionDate": null
+      },
+      "collectionIds": [],
+      "revisionDate": "2020-10-28T00:21:02.690Z"
+    }
+- args: 'get attachment filename --itemid item-id --raw'
+  response: 'hidden-file-value'
+- args: 'get attachment filename --itemid bf22e4b4-ae4a-4d1c-8c98-ac620004b628 --raw'
+  response: 'hidden-file-value'
+default:
+  response: |
+    Invalid command: $*
+    See --help for a list of available commands.
+  exitCode: 1
+-- bin/bws.yaml --
+responses:
+- args: 'secret get be8e0ad8-d545-4017-a55a-b02f014d4158 --access-token 0.48c78342-1635-48a6-accd-afbe01336365.C0tMmQqHnAp1h0gL8bngprlPOYutt0:B3h5D+YgLvFiQhWkIq6Bow=='
+  response: |
+    {
+      "object": "secret",
+      "id": "be8e0ad8-d545-4017-a55a-b02f014d4158",
+      "organizationId": "10e8cbfa-7bd2-4361-bd6f-b02e013f9c41",
+      "projectId": "e325ea69-a3ab-4dff-836f-b02e013fe530",
+      "key": "SES_KEY",
+      "value": "0.982492bc-7f37-4475-9e60",
+      "note": "",
+      "creationDate": "2023-06-28T20:13:20.643567Z",
+      "revisionDate": "2023-06-28T20:13:20.643567Z"
+    }
+default:
+  exitCode: 1
+-- golden/bitwarden-attachment --
+hidden-file-value

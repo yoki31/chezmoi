@@ -1,8 +1,17 @@
 /.vagrant
+/COMMIT
+/bin/actionlint
 /bin/chezmoi
+/bin/editorconfig-checker
+/bin/find-typos
 /bin/gofumpt
+/bin/golines
 /bin/golangci-lint
+/bin/goreleaser
+/bin/goversioninfo
 /chezmoi
 /chezmoi.exe
 /coverage.out
 /dist
+/resource_windows_*.syso
+/versioninfo.json

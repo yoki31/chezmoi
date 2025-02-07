@@ -1,18 +1,24 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
-	"sort"
+	"slices"
 	"text/template"
 
-	"gopkg.in/yaml.v2"
+	"github.com/goccy/go-yaml"
+
+	"github.com/twpayne/chezmoi/v2/internal/chezmoiset"
 )
 
-var output = flag.String("o", "", "output")
+var (
+	binDir = flag.String("b", "bin", "binary directory")
+	output = flag.String("o", "", "output")
+)
 
 type platform struct {
 	GOOS   string
@@ -38,7 +44,9 @@ type platformValue struct {
 type platformSet map[platform]platformValue
 
 func goToolDistList() (platformSet, error) {
-	data, err := exec.Command("go", "tool", "dist", "list", "-json").Output()
+	cmd := exec.Command("go", "tool", "dist", "list", "-json")
+	cmd.Stderr = os.Stderr
+	data, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +73,10 @@ func run() error {
 	}
 	var goreleaserConfig struct {
 		Builds []struct {
-			GOOS   []string
-			GOARCH []string
-			Ignore []platform
-		}
+			GOOS   []string   `yaml:"goos"`
+			GOARCH []string   `yaml:"goarch"`
+			Ignore []platform `yaml:"ignore"`
+		} `yaml:"builds"`
 	}
 	if err := yaml.Unmarshal(data, &goreleaserConfig); err != nil {
 		return err
@@ -84,32 +92,25 @@ func run() error {
 	delete(supportedPlatforms, newPlatform("windows", "arm64"))
 
 	// Build set of platforms.
-	allPlatforms := make(map[platform]struct{})
+	allPlatforms := chezmoiset.New[platform]()
 	for _, build := range goreleaserConfig.Builds {
-		buildPlatforms := make(map[platform]struct{})
+		buildPlatforms := chezmoiset.New[platform]()
 		for _, goos := range build.GOOS {
 			for _, goarch := range build.GOARCH {
 				platform := newPlatform(goos, goarch)
 				if _, ok := supportedPlatforms[platform]; ok {
-					buildPlatforms[platform] = struct{}{}
+					buildPlatforms.Add(platform)
 				}
 			}
 		}
-		for _, ignore := range build.Ignore {
-			delete(buildPlatforms, ignore)
-		}
-		for platform := range buildPlatforms {
-			allPlatforms[platform] = struct{}{}
-		}
+		buildPlatforms.Remove(build.Ignore...)
+		allPlatforms.AddSet(buildPlatforms)
 	}
 
 	// Sort platforms.
-	sortedPlatforms := make([]platform, 0, len(allPlatforms))
-	for platform := range allPlatforms {
-		sortedPlatforms = append(sortedPlatforms, platform)
-	}
-	sort.Slice(sortedPlatforms, func(i, j int) bool {
-		return sortedPlatforms[i].String() < sortedPlatforms[j].String()
+	sortedPlatforms := allPlatforms.Elements()
+	slices.SortFunc(sortedPlatforms, func(a, b platform) int {
+		return cmp.Compare(a.String(), b.String())
 	})
 
 	// Generate install.sh.
@@ -128,8 +129,10 @@ func run() error {
 		defer outputFile.Close()
 	}
 	return installShTemplate.ExecuteTemplate(outputFile, "install.sh.tmpl", struct {
+		BinDir    string
 		Platforms []platform
 	}{
+		BinDir:    *binDir,
 		Platforms: sortedPlatforms,
 	})
 }

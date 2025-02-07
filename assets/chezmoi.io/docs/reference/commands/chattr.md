@@ -16,6 +16,7 @@ modifiers and their abbreviations are:
 | `encrypted`        | *none*       |
 | `exact`            | *none*       |
 | `executable`       | `x`          |
+| `external`         | *none*       |
 | `once`             | `o`          |
 | `private`          | `p`          |
 | `readonly`         | `r`          |
@@ -38,12 +39,18 @@ Multiple modifications may be specified by separating them with a comma (`,`).
 If you use the `-`*modifier* form then you must put *modifier* after a `--` to
 prevent chezmoi from interpreting `-`*modifier* as an option.
 
-!!! example
+## Common flags
 
-    ```console
-    $ chezmoi chattr template ~/.bashrc
-    $ chezmoi chattr noempty ~/.profile
-    $ chezmoi chattr private,template ~/.netrc
-    $ chezmoi chattr -- -x ~/.zshrc
-    $ chezmoi chattr +create,+private ~/.kube/config
-    ```
+### `-r`, `--recursive`
+
+--8<-- "common-flags/recursive.md:default-false"
+
+## Examples
+
+```sh
+chezmoi chattr template ~/.bashrc
+chezmoi chattr noempty ~/.profile
+chezmoi chattr private,template ~/.netrc
+chezmoi chattr -- -x ~/.zshrc
+chezmoi chattr +create,+private ~/.kube/config
+```

@@ -9,8 +9,8 @@ chezmoi by creating a `run_once_` script. For example, create a file in your
 source directory called `run_once_before_install-packages-darwin.sh.tmpl`
 containing:
 
-```
-{{- if (eq .chezmoi.os "darwin") -}}
+```text
+{{- if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
 
 brew bundle --no-lock --file=/dev/stdin <<EOF
@@ -26,11 +26,20 @@ EOF
     document. chezmoi will run this script whenever its contents change, i.e.
     when you add or remove brews or casks.
 
-### Determine the hostname
+## Determine the hostname
 
-The result of the command `hostname` on macOS depends on the network that the
+The result of the `hostname` command on macOS depends on the network that the
 machine is connected to. For a stable result, use the `scutil` command:
 
-```
+```text
 {{ $computerName := output "scutil" "--get" "ComputerName" | trim }}
+```
+
+## Run script after every macOS update
+
+You can automate a script to run after each macOS update by creating
+a `run_onchange_` script and using the `output` template function to run `sw_vers`:
+
+```text
+# MacOS build version: {{ output "sw_vers" "--buildVersion" }}
 ```

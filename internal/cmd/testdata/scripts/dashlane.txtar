@@ -1,0 +1,45 @@
+mockcommand bin/dcli
+[windows] unix2dos golden/dashlane-note
+
+# test dashlanePassword template function
+exec chezmoi execute-template '{{ (index (dashlanePassword "filter") 0).password }}'
+stdout ^<password>$
+
+# test dashlaneNote template function
+exec chezmoi execute-template '{{ dashlaneNote "filter" }}'
+cmp stdout golden/dashlane-note
+
+-- bin/dcli.yaml --
+responses:
+- args: 'password --output json filter'
+  response: |
+    [
+        {
+            "title": "<name of the entry>",
+            "useFixedUrl": false,
+            "login": "<login>",
+            "status": "ACCOUNT_NOT_VERIFIED",
+            "note": "<any note>",
+            "autoLogin": false,
+            "modificationDatetime": "<timestamp>",
+            "checked": false,
+            "id": "<id>",
+            "anonId": "<anonymous id>",
+            "localeFormat": "UNIVERSAL",
+            "password": "<password>",
+            "creationDatetime": "<timestamp>",
+            "userModificationDatetime": "<timestamp>",
+            "lastBackupTime": "<timestamp>",
+            "autoProtected": false,
+            "strength": 0,
+            "subdomainOnly": false
+        }
+    ]
+- args: 'note filter'
+  response: '<note>'
+  escapeChars: true
+default:
+  response: "error: unknown command '$*'"
+  exitCode: 1
+-- golden/dashlane-note --
+<note>

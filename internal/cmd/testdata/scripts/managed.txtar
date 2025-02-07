@@ -1,0 +1,317 @@
+mksourcedir
+
+# test chezmoi managed
+exec chezmoi managed
+cmp stdout golden/managed
+
+# test chezmoi managed --exclude-encrypted
+exec chezmoi managed --exclude=encrypted
+cmp stdout golden/managed-exclude-encrypted
+
+# test chezmoi managed --exclude=files
+exec chezmoi managed --exclude=files
+cmp stdout golden/managed-exclude-files
+
+# test chezmoi managed --exclude=files,templates
+exec chezmoi managed --exclude=files,templates
+cmp stdout golden/managed-exclude-files-and-templates
+
+# test chezmoi managed --include=all
+exec chezmoi managed --include=all
+cmp stdout golden/managed-include-all
+
+# test chezmoi managed --include=dirs
+exec chezmoi managed --include=dirs
+cmp stdout golden/managed-include-dirs
+
+# test chezmoi managed --include=encrypted
+exec chezmoi managed --include=encrypted
+cmp stdout golden/managed-include-encrypted
+
+# test chezmoi managed --include=files
+exec chezmoi managed --include=files
+cmp stdout golden/managed-include-files
+
+# test chezmoi managed --include=files --exclude=templates
+exec chezmoi managed --include=files --exclude=templates
+cmp stdout golden/managed-include-files-exclude-templates
+
+# test chezmoi managed --include=symlinks
+exec chezmoi managed --include=symlinks
+cmp stdout golden/managed-include-symlinks
+
+# test chezmoi managed --include=templates
+exec chezmoi managed --include=templates
+cmp stdout golden/managed-include-templates
+
+# test chezmoi managed with arguments
+exec chezmoi managed $HOME${/}.dir $HOME${/}.create
+cmp stdout golden/managed-with-args
+
+# test chezmoi managed with child of managed dir as argument
+exec chezmoi managed $HOME${/}.dir/subdir
+cmp stdout golden/managed-in-managed
+
+# test chezmoi managed --exclude=dir with arguments
+exec chezmoi managed --exclude=dirs $HOME${/}.dir $HOME${/}.create
+cmp stdout golden/managed-with-nodir-args
+
+# test chezmoi managed with absent arguments
+exec chezmoi managed $HOME${/}.dir $HOME${/}.non-exist
+cmp stdout golden/managed-with-absent-args
+
+# test chezmoi managed --path-style=absolute
+[unix] exec chezmoi managed --path-style=absolute
+[unix] cmpenv stdout golden/managed-absolute
+
+# test chezmoi managed --path-style=source-absolute
+exec chezmoi managed --path-style=source-absolute
+cmpenv stdout golden/managed-source-absolute
+
+# test chezmoi managed --path-style=source-relative
+exec chezmoi managed --path-style=source-relative
+cmp stdout golden/managed-source-relative
+
+chhome home2/user
+
+# test that chezmoi managed does not evaluate templates
+exec chezmoi managed --include=all
+cmp stdout golden/managed2
+
+# test chezmoi managed --path-style=all
+[!windows] exec chezmoi managed --path-style=all
+[!windows] cmpenv stdout golden/managed-all.json
+
+# test chezmoi managed --path-style=all --format=yaml
+[!windows] exec chezmoi managed --path-style=all --format=yaml
+[!windows] cmpenv stdout golden/managed-all.yaml
+
+-- golden/managed --
+.create
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+.empty
+.encrypted
+.executable
+.file
+.private
+.readonly
+.remove
+.symlink
+.template
+-- golden/managed-absolute --
+$WORK/home/user/.create
+$WORK/home/user/.dir
+$WORK/home/user/.dir/file
+$WORK/home/user/.dir/subdir
+$WORK/home/user/.dir/subdir/file
+$WORK/home/user/.empty
+$WORK/home/user/.encrypted
+$WORK/home/user/.executable
+$WORK/home/user/.file
+$WORK/home/user/.private
+$WORK/home/user/.readonly
+$WORK/home/user/.remove
+$WORK/home/user/.symlink
+$WORK/home/user/.template
+-- golden/managed-all.json --
+{
+  ".create": {
+    "absolute": "$WORK/home2/user/.create",
+    "sourceAbsolute": "$WORK/home2/user/.local/share/chezmoi/create_dot_create.tmpl",
+    "sourceRelative": "create_dot_create.tmpl"
+  },
+  ".file": {
+    "absolute": "$WORK/home2/user/.file",
+    "sourceAbsolute": "$WORK/home2/user/.local/share/chezmoi/modify_dot_file.tmpl",
+    "sourceRelative": "modify_dot_file.tmpl"
+  },
+  ".symlink": {
+    "absolute": "$WORK/home2/user/.symlink",
+    "sourceAbsolute": "$WORK/home2/user/.local/share/chezmoi/symlink_dot_symlink.tmpl",
+    "sourceRelative": "symlink_dot_symlink.tmpl"
+  },
+  ".template": {
+    "absolute": "$WORK/home2/user/.template",
+    "sourceAbsolute": "$WORK/home2/user/.local/share/chezmoi/dot_template.tmpl",
+    "sourceRelative": "dot_template.tmpl"
+  },
+  "script": {
+    "absolute": "$WORK/home2/user/script",
+    "sourceAbsolute": "$WORK/home2/user/.local/share/chezmoi/run_script.tmpl",
+    "sourceRelative": "run_script.tmpl"
+  }
+}
+-- golden/managed-all.yaml --
+.create:
+  absolute: $WORK/home2/user/.create
+  sourceAbsolute: $WORK/home2/user/.local/share/chezmoi/create_dot_create.tmpl
+  sourceRelative: create_dot_create.tmpl
+.file:
+  absolute: $WORK/home2/user/.file
+  sourceAbsolute: $WORK/home2/user/.local/share/chezmoi/modify_dot_file.tmpl
+  sourceRelative: modify_dot_file.tmpl
+.symlink:
+  absolute: $WORK/home2/user/.symlink
+  sourceAbsolute: $WORK/home2/user/.local/share/chezmoi/symlink_dot_symlink.tmpl
+  sourceRelative: symlink_dot_symlink.tmpl
+.template:
+  absolute: $WORK/home2/user/.template
+  sourceAbsolute: $WORK/home2/user/.local/share/chezmoi/dot_template.tmpl
+  sourceRelative: dot_template.tmpl
+script:
+  absolute: $WORK/home2/user/script
+  sourceAbsolute: $WORK/home2/user/.local/share/chezmoi/run_script.tmpl
+  sourceRelative: run_script.tmpl
+-- golden/managed-exclude-encrypted --
+.create
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+.empty
+.executable
+.file
+.private
+.readonly
+.remove
+.symlink
+.template
+-- golden/managed-exclude-files --
+.dir
+.dir/subdir
+.symlink
+-- golden/managed-exclude-files-and-templates --
+.dir
+.dir/subdir
+.symlink
+-- golden/managed-exclude-templates --
+.create
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+.empty
+.encrypted
+.executable
+.file
+.private
+.readonly
+.remove
+.symlink
+-- golden/managed-in-managed --
+.dir/subdir
+.dir/subdir/file
+-- golden/managed-include-all --
+.create
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+.empty
+.encrypted
+.executable
+.file
+.private
+.readonly
+.remove
+.symlink
+.template
+-- golden/managed-include-dirs --
+.dir
+.dir/subdir
+-- golden/managed-include-encrypted --
+.encrypted
+-- golden/managed-include-files --
+.create
+.dir/file
+.dir/subdir/file
+.empty
+.encrypted
+.executable
+.file
+.private
+.readonly
+.remove
+.template
+-- golden/managed-include-files-exclude-templates --
+.create
+.dir/file
+.dir/subdir/file
+.empty
+.encrypted
+.executable
+.file
+.private
+.readonly
+.remove
+-- golden/managed-include-symlinks --
+.symlink
+-- golden/managed-include-templates --
+.template
+-- golden/managed-source-absolute --
+${CHEZMOISOURCEDIR}/create_dot_create
+${CHEZMOISOURCEDIR}/dot_dir
+${CHEZMOISOURCEDIR}/dot_dir/exact_subdir
+${CHEZMOISOURCEDIR}/dot_dir/exact_subdir/file
+${CHEZMOISOURCEDIR}/dot_dir/file
+${CHEZMOISOURCEDIR}/dot_file
+${CHEZMOISOURCEDIR}/dot_remove
+${CHEZMOISOURCEDIR}/dot_template.tmpl
+${CHEZMOISOURCEDIR}/empty_dot_empty
+${CHEZMOISOURCEDIR}/encrypted_dot_encrypted
+${CHEZMOISOURCEDIR}/executable_dot_executable
+${CHEZMOISOURCEDIR}/private_dot_private
+${CHEZMOISOURCEDIR}/readonly_dot_readonly
+${CHEZMOISOURCEDIR}/symlink_dot_symlink
+-- golden/managed-source-relative --
+create_dot_create
+dot_dir
+dot_dir/exact_subdir
+dot_dir/exact_subdir/file
+dot_dir/file
+dot_file
+dot_remove
+dot_template.tmpl
+empty_dot_empty
+encrypted_dot_encrypted
+executable_dot_executable
+private_dot_private
+readonly_dot_readonly
+symlink_dot_symlink
+-- golden/managed-with-absent-args --
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+-- golden/managed-with-args --
+.create
+.dir
+.dir/file
+.dir/subdir
+.dir/subdir/file
+-- golden/managed-with-nodir-args --
+.create
+.dir/file
+.dir/subdir/file
+-- golden/managed2 --
+.create
+.file
+.symlink
+.template
+script
+-- home/user/.local/share/chezmoi/.chezmoiremove --
+.remove
+-- home/user/.local/share/chezmoi/encrypted_dot_encrypted --
+-- home2/user/.local/share/chezmoi/create_dot_create.tmpl --
+{{ fail "Template should not be executed" }}
+-- home2/user/.local/share/chezmoi/dot_template.tmpl --
+{{ fail "Template should not be executed" }}
+-- home2/user/.local/share/chezmoi/modify_dot_file.tmpl --
+{{ fail "Template should not be executed" }}
+-- home2/user/.local/share/chezmoi/run_script.tmpl --
+{{ fail "Template should not be executed" }}
+-- home2/user/.local/share/chezmoi/symlink_dot_symlink.tmpl --
+{{ fail "Template should not be executed" }}

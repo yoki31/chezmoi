@@ -1,0 +1,57 @@
+mkhomedir
+mksourcedir
+
+exec chezmoi unmanaged
+cmp stdout golden/unmanaged
+
+rm $CHEZMOISOURCEDIR/dot_dir
+exec chezmoi unmanaged
+cmp stdout golden/unmanaged-dir
+
+rm $CHEZMOISOURCEDIR/dot_file
+exec chezmoi unmanaged
+cmp stdout golden/unmanaged-dir-file
+
+# test chezmoi unmanaged with arguments
+exec chezmoi unmanaged $HOME${/}.dir $HOME${/}.file
+cmp stdout golden/unmanaged-with-args
+
+# test chezmoi unmanaged, with child of unmanaged dir as argument
+exec chezmoi unmanaged $HOME${/}.dir/subdir
+cmp stdout golden/unmanaged-inside-unmanaged
+
+# test chezmoi unmanaged with managed arguments
+exec chezmoi unmanaged $HOME${/}.create $HOME${/}.file
+cmp stdout golden/unmanaged-with-some-managed
+
+# test that chezmoi unmanaged with absent paths should fail
+! exec chezmoi unmanaged $HOME${/}absent-path
+
+# test chezmoi unmanaged --path-style=absolute
+[unix] exec chezmoi unmanaged --path-style=absolute
+[unix] cmpenv stdout golden/unmanaged-absolute
+
+# test chezmoi unmanaged --path-style=source-absolute
+! exec chezmoi unmanaged --path-style=source-absolute
+stderr 'flag: invalid value'
+
+-- golden/unmanaged --
+.local
+-- golden/unmanaged-absolute --
+$WORK/home/user/.dir
+$WORK/home/user/.file
+$WORK/home/user/.local
+-- golden/unmanaged-dir --
+.dir
+.local
+-- golden/unmanaged-dir-file --
+.dir
+.file
+.local
+-- golden/unmanaged-inside-unmanaged --
+.dir/subdir
+-- golden/unmanaged-with-args --
+.dir
+.file
+-- golden/unmanaged-with-some-managed --
+.file

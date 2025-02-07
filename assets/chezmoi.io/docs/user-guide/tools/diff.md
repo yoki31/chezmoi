@@ -15,6 +15,56 @@ specify:
     args = ["--diff", "{{ .Destination }}", "{{ .Target }}"]
 ```
 
+!!! hint
+
+    If you generate your config file from a config file template, then you'll
+    need to escape the `{{` and `}}` as `{{ "{{" }}` and `{{ "}}" }}`. That way
+    your generated config file contains the `{{` and `}}` you expect.
+
+## Use VSCode as the diff tool
+
+To use [VSCode](https://code.visualstudio.com/) as the diff tool, add the
+following to your config:
+
+=== "TOML"
+
+    ```toml title="~/.config/chezmoi/chezmoi.toml"
+    [diff]
+    command = "code"
+    args = ["--wait", "--diff"]
+    ```
+
+=== "YAML"
+
+    ```yaml title="~/.config/chezmoi/chezmoi.yaml"
+    diff:
+      command: "code"
+      args:
+      - "--wait"
+      - "--diff"
+    ```
+
+## Use delta as the diff tool
+
+To use [delta](https://dandavison.github.io/delta/) as the diff tool you must
+set both `diff.command` and `diff.pager` to delta, for example:
+
+=== "TOML"
+
+    ```toml title="~/.config/chezmoi/chezmoi.toml"
+    [diff]
+    command = "delta"
+    pager = "delta"
+    ```
+
+=== "YAML"
+
+    ```yaml title="~/.config/chezmoi/chezmoi.yaml"
+    diff:
+      command: "delta"
+      pager: "delta"
+    ```
+
 ## Don't show scripts in the diff output
 
 By default, `chezmoi diff` will show all changes, including the contents of
@@ -26,6 +76,11 @@ for example:
 [diff]
     exclude = ["scripts"]
 ```
+
+## Don't show externals in the diff output
+
+To exclude diffs from externals, either pass the `--exclude=externals` flag or
+set `diff.exclude` to `["externals"]` in your config file.
 
 ## Customize the diff pager
 
@@ -40,3 +95,56 @@ choice by setting `diff.pager` configuration variable. For example, to use
 
 The pager can be disabled using the `--no-pager` flag or by setting `diff.pager`
 to an empty string.
+
+## Show human-friendly diffs for binary files
+
+Similar to git, chezmoi includes a "textconv" feature that can transform file
+contents before passing them to the diff program. This is primarily useful for
+generating human-readable diffs of binary files.
+
+For example, to show diffs of macOS `.plist` files, add the following to your
+configuration file:
+
+=== "JSON"
+
+    ```json title="~/.config/chezmoi/chezmoi.json"
+    {
+        "textconv": [
+            "pattern": "**/*.plist",
+            "command": "plutil",
+            "args": [
+                "-convert",
+                "xml1",
+                "-o",
+                "-",
+                "-"
+            ]
+        ]
+    }
+    ```
+
+=== "TOML"
+
+    ```toml title="~/.config/chezmoi/chezmoi.toml"
+    [[textconv]]
+    pattern = "**/*.plist"
+    command = "plutil"
+    args = ["-convert", "xml1", "-o", "-", "-"]
+    ```
+
+=== "YAML"
+
+    ```yaml title="~/.config/chezmoi/chezmoi.yaml"
+    textconv:
+    - pattern: "**/*.plist"
+      command: "plutil"
+      args:
+      - "-convert"
+      - "xml1"
+      - "-o"
+      - "-",
+      - "-"
+    ```
+
+This will pipe all `.plist` files through `plutil -convert xml1 -o - -` before
+showing differences.

@@ -1,0 +1,29 @@
+mockcommand bin/lpass
+
+# test lastpass template function
+exec chezmoi execute-template '{{ (index (lastpass "example.com") 0).password }}'
+stdout ^examplepassword$
+
+-- bin/lpass.yaml --
+responses:
+- args: '--version'
+  response: 'LastPass CLI v1.3.3.GIT'
+- args: 'show --json example.com'
+  response: |
+    [
+      {
+        "id": "0",
+        "name": "example.com",
+        "fullname": "Examples/example.com",
+        "username": "examplelogin",
+        "password": "examplepassword",
+        "last_modified_gmt": "0",
+        "last_touch": "0",
+        "group": "Examples",
+        "url": "",
+        "note": ""
+      }
+    ]
+default:
+  response: 'lpass: invalid command: $*'
+  exitCode: 1

@@ -2,8 +2,14 @@
 
 Check for potential problems.
 
-!!! example
+## Flags
 
-    ```console
-    $ chezmoi doctor
-    ```
+### `--no-network`
+
+Do not use any network connections.
+
+## Examples
+
+```sh
+chezmoi doctor
+```

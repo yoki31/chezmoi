@@ -11,7 +11,12 @@ will only execute the `ioreg -a -l` command once.
 !!! example
 
     ```
-    {{ if (eq .chezmoi.os "darwin") }}
-    {{ $serialNumber := index ioreg "IORegistryEntryChildren" 0 "IOPlatformSerialNumber" }}
+    {{ if eq .chezmoi.os "darwin" }}
+    {{   $serialNumber := index ioreg "IORegistryEntryChildren" 0 "IOPlatformSerialNumber" }}
     {{ end }}
     ```
+
+!!! warning
+
+    The `ioreg` function can be very slow and should not be used. It will be
+    removed in a later version of chezmoi.

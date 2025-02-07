@@ -5,19 +5,37 @@ no targets are specified, the state of all targets are ensured. If a target has
 been modified since chezmoi last wrote it then the user will be prompted if
 they want to overwrite the file.
 
-## `-i`, `--include` *types*
+## Common flags
 
-Only add entries of type *types*.
+### `-x`, `--exclude` *types*
 
-## `--source-path`
+--8<-- "common-flags/exclude.md"
+
+### `-i`, `--include` *types*
+
+--8<-- "common-flags/include.md"
+
+### `--init`
+
+--8<-- "common-flags/init.md"
+
+### `-P`, `--parent-dirs`
+
+--8<-- "common-flags/parent-dirs.md"
+
+### `-r`, `--recursive`
+
+--8<-- "common-flags/recursive.md:default-true"
+
+### `--source-path`
 
 Specify targets by source path, rather than target path. This is useful for
 applying changes after editing.
 
-!!! example
+## Examples
 
-    ```console
-    $ chezmoi apply
-    $ chezmoi apply --dry-run --verbose
-    $ chezmoi apply ~/.bashrc
-    ```
+```sh
+chezmoi apply
+chezmoi apply --dry-run --verbose
+chezmoi apply ~/.bashrc
+```

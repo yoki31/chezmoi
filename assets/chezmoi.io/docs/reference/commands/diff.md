@@ -10,27 +10,55 @@ If `diff.command` is set then it will be invoked to show individual file
 differences with `diff.args` passed as arguments. Each element of `diff.args`
 is interpreted as a template with the variables `.Destination` and `.Target`
 available corresponding to the path of the file in the source and target state
-respectively. The default value of `diff.args` is `["{{ .Destination }}", "{{
-    .Target }}"]`. If `diff.args` does not contain any template arguments then
-    `{{ .Destination }}` and `{{ .Target }}` will be appended automatically.
+respectively. The default value of `diff.args` is
+`["{{ .Destination }}", "{{ .Target }}"]`. If `diff.args` does not contain any
+template arguments then `{{ .Destination }}` and `{{ .Target }}` will be
+appended automatically.
 
-## `--reverse`
+## Flags
+
+### `--pager` *pager*
+
+> Configuration: `diff.pager`
+
+Pager to use for output.
+
+### `--reverse`
+
+> Configuration: `diff.reverse`
 
 Reverse the direction of the diff, i.e. show the changes to the target required
 to match the destination.
 
-## `--pager` *pager*
+### `--script-contents`
 
-Pager to use for output.
+Show script contents, defaults to `true`.
 
-## `--use-builtin-diff`
+## Common flags
 
-Use chezmoi's builtin diff, even if the `diff.command` configuration variable
-is set.
+### `-x`, `--exclude` *types*
 
-!!! example
+--8<-- "common-flags/exclude.md"
 
-    ```console
-    $ chezmoi diff
-    $ chezmoi diff ~/.bashrc
-    ```
+### `-i`, `--include` *types*
+
+--8<-- "common-flags/include.md"
+
+### `--init`
+
+--8<-- "common-flags/init.md"
+
+### `-P`, `--parent-dirs`
+
+--8<-- "common-flags/parent-dirs.md"
+
+### `-r`, `--recursive`
+
+--8<-- "common-flags/recursive.md:default-false"
+
+## Examples
+
+```sh
+chezmoi diff
+chezmoi diff ~/.bashrc
+```

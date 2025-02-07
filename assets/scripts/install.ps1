@@ -1,323 +1,276 @@
-enum LogLevel {
-    Debug = 3
-    Info = 2
-    Error = 1
-    Critical = 0
-}
+<#
+.SYNOPSIS
+Install (and optionally run) chezmoi.
 
-$old_eap = $ErrorActionPreference
-$ErrorActionPreference = 'Stop' # throw an exception if anything bad happens
+.PARAMETER BinDir
+Specifies the installation directory. "./bin" is the default. Alias: b
 
-# If the environment isn't correct for running this script, try to give people
-# some idea of how to fix it
+.PARAMETER Tag
+Specifies the version of chezmoi to install. "latest" is the default. Alias: t
 
-if (($PSVersionTable.PSVersion.Major) -lt 5) {
-    Write-Warning "PowerShell 5 or later is required to run this install script."
-    Write-Warning "Please upgrade: https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell"
-    break
-}
+.PARAMETER EnableDebug
+If specified, print debug output. Alias: d
 
-# show notification to change execution policy:
-$allowedExecutionPolicy = @('Unrestricted', 'RemoteSigned', 'Bypass')
-if ((Get-ExecutionPolicy).ToString() -notin $allowedExecutionPolicy) {
-    Write-Warning "PowerShell requires an execution policy in [$($allowedExecutionPolicy -join ", ")] to run this install script."
-    Write-Warning "For example, to set the execution policy to 'RemoteSigned' please run :"
-    Write-Warning "'Set-ExecutionPolicy RemoteSigned -scope CurrentUser'"
-    break
-}
+.PARAMETER ChezmoiArgs
+If specified, execute chezmoi with these arguments after successful installation. This parameter can be provided
+positionally without specifying its name.
 
-# globals
-$tempdir = (Join-Path ([IO.Path]::GetTempPath()) ([IO.Path]::GetRandomFileName()));
+.EXAMPLE
+PS> install.ps1 -b '~/bin'
+PS> iex "&{$(irm 'https://get.chezmoi.io/ps1')} -b '~/bin'"
 
-# Helper functions
-function Fetch-FileFromWeb(
-    [string]$url,
-    [string]$path
-) {
-    $cl = New-Object Net.WebClient
-    $cl.Headers['User-Agent'] = 'System.Net.WebClient'
-    $cl.DownloadFile($url, $path)
-}
+.EXAMPLE
+PS> install.ps1 -- init --apply <DOTFILE_REPO_URL>
+PS> iex "&{$(irm 'https://get.chezmoi.io/ps1')} -- init --apply <DOTFILE_REPO_URL>"
+#>
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $false)]
+    [Alias('b')]
+    [string]
+    $BinDir = (Join-Path -Path (Resolve-Path -Path '.') -ChildPath 'bin'),
 
-function Fetch-StringFromWeb(
-    [string]$url
-) {
-    $cl = New-Object Net.WebClient
-    $cl.Headers['User-Agent'] = 'System.Net.WebClient'
-    return $cl.DownloadString($url)
-}
+    [Parameter(Mandatory = $false)]
+    [Alias('t')]
+    [string]
+    $Tag = 'latest',
 
-function Fetch-JsonFromWeb(
-    [string]$url
-) {
-    $cl = New-Object Net.WebClient
-    $cl.Headers['User-Agent'] = 'System.Net.WebClient'
-    $cl.Headers['Accept'] = 'application/json'
-    return $cl.DownloadString($url) | ConvertFrom-Json
-}
+    [Parameter(Mandatory = $false)]
+    [Alias('d')]
+    [switch]
+    $EnableDebug,
 
-function Fetch-DataFromWeb(
-    [string]$url
-) {
-    $cl = New-Object Net.WebClient
-    $cl.Headers['User-Agent'] = 'System.Net.WebClient'
-    return $cl.DownloadData($url)
-}
+    [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
+    [string[]]
+    $ChezmoiArgs
+)
 
-function log {
-    [CmdletBinding(PositionalBinding=$false)]
-    param(
-        [LogLevel] $MessageLevel,
-        [string] $Message
+function Write-DebugVariable {
+    param (
+        [string[]]$variables
     )
-
-    if ([int]$LogLevel -ge [int]$MesageLevel) {
-        Write-Host $Message
+    foreach ($variable in $variables) {
+        $debugVariable = Get-Variable -Name $variable
+        Write-Debug "$( $debugVariable.Name ): $( $debugVariable.Value )"
     }
 }
 
-function log-debug {
-    param(
-        [string] $Message
-    )
-    log -MessageLevel Debug -Message $Message
+function Invoke-CleanUp ($directory) {
+    if (($null -ne $directory) -and (Test-Path -Path $directory)) {
+        Write-Debug "removing ${directory}"
+        Remove-Item -Path $directory -Recurse -Force
+    }
 }
 
-function log-info {
-    param(
-        [string] $Message
-    )
-    log -MessageLevel Info -Message $Message
+function Invoke-FileDownload ($uri, $path) {
+    Write-Debug "downloading ${uri}"
+    $wc = [System.Net.WebClient]::new()
+    $wc.Headers.Add('Accept', 'application/octet-stream')
+    $wc.DownloadFile($uri, $path)
+    $wc.Dispose()
 }
 
-function log-error {
-    param(
-        [string] $Message
-    )
-    log -MessageLevel Error -Message $Message
+function Invoke-StringDownload ($uri) {
+    Write-Debug "downloading ${uri} as string"
+    $wc = [System.Net.WebClient]::new()
+    $wc.DownloadString($uri)
+    $wc.Dispose()
 }
 
-function log-critical {
-    param(
-        [string] $Message
-    )
-    log -MessageLevel Critical -Message $Message
+function Get-GoOS {
+    if ($PSVersionTable.PSEdition -eq 'Desktop') {
+        return 'windows'
+    }
+
+    $isOSPlatform = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform
+    $osPlatform = [System.Runtime.InteropServices.OSPlatform]
+
+    if ($isOSPlatform.Invoke($osPlatform::Windows)) { return 'windows' }
+    if ($isOSPlatform.Invoke($osPlatform::Linux)) { return 'linux' }
+    if ($isOSPlatform.Invoke($osPlatform::OSX)) { return 'darwin' }
+
+    Write-Error 'unable to determine GOOS'
 }
 
-function get_goos {
-    $ri = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform;
-    # if $ri isn't defined, then we must be running in Powershell 5.1, which only works on Windows.
-    if (-not $ri -or $ri.Invoke([Runtime.InteropServices.OSPlatform]::Windows)) {
-        return "windows"
-    } elseif ($ri.Invoke([Runtime.InteropServices.OSPlatform]::Linux)) {
-        return "linux"
-    } elseif ($ri.Invoke([Runtime.InteropServices.OSPlatform]::OSX)) {
-        return "darwin"
-    } elseif ($ri.Invoke([Runtime.InteropServices.OSPlatform]::FreeBSD)) {
-        return "freebsd"
+function Get-GoArch {
+    if ($PSVersionTable.PSEdition -eq 'Core') {
+        $goArch = @{
+            'Arm'   = 'arm'
+            'Arm64' = 'arm64'
+            'X86'   = 'i386'
+            'X64'   = 'amd64'
+        }
+        $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+        $result = $goArch[$arch]
+        if (-not $result) {
+            throw "Unsupported OS architecture: $arch"
+        }
+        return $result
+    }
+
+    $cpuArch = (Get-CimInstance -ClassName Win32_Processor).Architecture
+
+    if ([System.Environment]::Is64BitOperatingSystem) {
+        switch ($cpuArch) {
+            9  { return 'amd64' }
+            12 { return 'arm64' }
+            default {
+                throw "Unsupported CPU architecture ($cpuArch) on a 64-bit OS."
+            }
+        }
     } else {
-        throw "unsupported platform"
-    }
-}
-
-function get_goarch {
-    $arch = "$([Runtime.InteropServices.RuntimeInformation]::OSArchitecture)";
-    $wmi_arch = $null;
-
-    if ((-not $arch) -and [Environment]::Is64BitOperatingSystem) {
-        $arch = "X64";
-    }
-
-    # [Environment]::Is64BitOperatingSystem is only available on .net 4 or
-    # newer, so if we still don't know, try another method
-    if (-not $arch) {
-        if (Get-Command "Get-WmiObject" -ErrorAction SilentlyContinue) {
-            $wmi_arch = (Get-WmiObject -Class Win32_OperatingSystem | Select-Object *).OSArchitecture
-            if ($wmi_arch.StartsWith("64")) {
-                $arch = "X64";
-            } elseif ($wmi_arch.StartsWith("32")) {
-                $arch = "X86";
+        switch ($cpuArch) {
+            0 { return 'i386' }
+            9 { return 'i386' } # AMD64 CPU running 32-bit OS
+            5 { return 'arm' }
+            12 { return 'arm' } # ARM64 CPU running 32-bit OS
+            default {
+                throw "Unsupported CPU architecture ($cpuArch) on a 32-bit OS."
             }
         }
     }
+}
 
-    switch ($arch) {
-        "Arm" {
-            return "arm"
-        }
-        "Arm64" {
-            return "arm64"
-        }
-        "X86" {
-            return "i386"
-        }
-        "X64" {
-            return "amd64"
-        }
-
-        default {
-            log-debug "Unsupported architecture: $arch (wmi: $wmi_arch)"
-            throw "unsupported architecture"
-        }
+function Get-RealTag ($tag) {
+    Write-Debug "checking GitHub for tag ${tag}"
+    $releaseUrl = "${BaseUrl}/${tag}"
+    $json = try {
+        Invoke-RestMethod -Uri $releaseUrl -Headers @{ 'Accept' = 'application/json' }
+    } catch {
+        Write-Error "error retrieving GitHub release ${tag}"
     }
+    $realTag = $json.tag_name
+    Write-Debug "found tag ${realTag} for ${tag}"
+    return $realTag
 }
 
-function get-real-tag {
-    param(
-        [string] $tag
-    )
-
-    log-debug "checking GitHub for tag $tag"
-
-    $release_url = "https://github.com/twpayne/chezmoi/releases/$tag"
-    $real_tag = (Fetch-JsonFromWeb $release_url).tag_name
-
-    log-debug "found tag $real_tag for $tag"
-    return $real_tag
+function Get-LibC {
+    $libcOutput = ''
+    if (Get-Command -CommandType Application ldd -ErrorAction SilentlyContinue) {
+        $libcOutput = (ldd --version 2>&1) -join [System.Environment]::NewLine
+    } elseif (Get-Command -CommandType Application getconf -ErrorAction SilentlyContinue) {
+        $libcOutput = (getconf GNU_LIBC_VERSION 2>&1) -join [System.Environment]::NewLine
+    }
+    Write-DebugVariable 'libcOutput'
+    switch -Wildcard ($libcOutput) {
+        '*glibc*' { return 'glibc' }
+        '*gnu libc*' { return 'glibc' }
+        '*musl*' { return 'musl' }
+    }
+    Write-Error 'unable to determine libc'
 }
 
-function verify-hash {
-    param(
-        [string] $target,
-        [string] $checksums
-    )
+function Get-Checksums ($tag, $version) {
+    $checksumsText = Invoke-StringDownload "${BaseUrl}/download/${tag}/chezmoi_${version}_checksums.txt"
 
-    $basename = [IO.Path]::GetFileName($target);
+    $checksums = @{}
+    $lines = $checksumsText -split '\r?\n' | Where-Object { $_ }
+    foreach ($line in $lines) {
+        $value, $key = $line -split '\s+'
+        $checksums[$key] = $value
+    }
+    $checksums
+}
 
-    # what checksum are we looking for?
-    $want = (Get-Content $checksums | ForEach-Object {
-        $line = $_;
-        if ($line -match "$($basename)$") {
-            $hash, $name = ($line -split "\s+");
-            return $hash;
-        }
-    } | Select-Object -First 1).ToLower();
-
-    $got = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLower();
-
+function Confirm-Checksum ($target, $checksums) {
+    $basename = [System.IO.Path]::GetFileName($target)
+    if (-not $checksums.ContainsKey($basename)) {
+        Write-Error "unable to find checksum for ${target} in checksums"
+    }
+    $want = $checksums[$basename].ToLower()
+    $got = (Get-FileHash -Path $target -Algorithm SHA256).Hash.ToLower()
     if ($want -ne $got) {
-        Write-Error "Wanted: $want"
-        Write-Error "Got: $got"
-        throw "Checksum mismatch!"
+        Write-Error "checksum for ${target} did not verify ${want} vs ${got}"
     }
 }
 
-function unpack-file {
-    param(
-        [string] $file
-    )
-
-    if ($file.EndsWith(".tar.gz") -or $file.EndsWith(".tgz")) {
-        tar -xzf $file
-    } elseif ($file.EndsWith(".tar")) {
-        tar -xf $file
-    } elseif ($file.EndsWith(".zip")) {
-        Expand-Archive -LiteralPath $file -DestinationPath .
-    } else {
-        throw "can't unpack unknown format for $file"
+function Expand-ChezmoiArchive ($path) {
+    $parent = Split-Path -Path $path -Parent
+    Write-Debug "extracting ${path} to ${parent}"
+    if ($path.EndsWith('.tar.gz')) {
+        & tar --extract --gzip --file $path --directory $parent
+    }
+    if ($path.EndsWith('.zip')) {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($path, $parent)
     }
 }
 
-<#
-    .SYNOPSIS
-    Install the Chezmoi dotfile manager
+Set-StrictMode -Version 3.0
 
-    .DESCRIPTION
-    Installs Chezmoi to the given directory, defaulting to ./bin
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
-    You can specify a particular git tag using the -Tag option.
-
-    Examples:
-    '$params = "-BinDir ~/bindir"', (iwr https://chezmoi.io/get.ps1).Content | powershell -c -
-    '$params = "-Tag v1.8.10"', (iwr https://chezmoi.io/get.ps1).Content | powershell -c -
-#>
-function Install-Chezmoi {
-    [CmdletBinding(PositionalBinding=$false)]
-    param(
-        [Parameter(Mandatory = $false)]
-        [string]
-        $BinDir = (Join-Path (Resolve-Path '.') 'bin'),
-
-        [Parameter(Mandatory = $false)]
-        [string] $Tag = 'latest',
-
-        [LogLevel] $LogLevel = [LogLevel]::Info,
-
-        [Parameter(ValueFromRemainingArguments = $true)]
-        [string[]]$ExecArgs
-    )
-
-    # some sub-functions (ie, get_goarch, likely others) require fetching of
-    # non-existent properties to not error
-    Set-StrictMode -off
-
-    # $BinDir = Resolve-Path $BinDir
-
-    $os = get_goos
-    $arch = get_goarch
-    $real_tag = get-real-tag $Tag
-    $version = if ($real_tag.StartsWith("v")) { $real_tag.Substring(1) } else { $real_tag };
-
-    log-info "found version $version for $Tag/$os/$arch"
-
-    $binsuffix = ""
-    $format = "tar.gz"
-
-    if ($os -eq "windows") {
-        $binsuffix = ".exe"
-        $format = "zip"
-    }
-
-    $github_download = "https://github.com/twpayne/chezmoi/releases/download"
-    New-Item -Type Directory -Path $tempdir | Out-Null
-
-    # download tarball
-    $name="chezmoi_$($version)_$($os)_$($arch)"
-    $tarball="$name.$format"
-    $tarball_url="$($github_download)/$real_tag/$tarball"
-
-    $tmp_tarball = (Join-Path $tempdir $tarball)
-    Fetch-FileFromWeb $tarball_url $tmp_tarball
-
-    # download checksums
-    $checksums = "chezmoi_$($version)_checksums.txt"
-    $checksums_url = "$($github_download)/$($real_tag)/$($checksums)"
-
-    $tmp_checksums = (Join-Path $tempdir $checksums)
-    Fetch-FileFromWeb $checksums_url $tmp_checksums
-
-    # verify checksums
-    verify-hash $tmp_tarball $tmp_checksums
-
-    Push-Location $tempdir
-
-    unpack-file $tarball
-
-    # install the binary
-    if (-not (Test-Path $BinDir)) {
-        New-Item -Type Directory -Path $BinDir | Out-Null
-    }
-
-    $binary = "chezmoi$($binsuffix)";
-    $tmp_binary = (Join-Path $tempdir $binary);
-
-    Move-Item -Force -Path $tmp_binary -Destination $BinDir
-
-    log-info "Installed $($BinDir)/$($binary)"
-
-    if ($ExecArgs) {
-        & "$($BinDir)/$($binary)" $ExecArgs
-    }
+$script:ErrorActionPreference = 'Stop'
+$script:InformationPreference = 'Continue'
+if ($EnableDebug) {
+    $script:DebugPreference = 'Continue'
 }
 
-try {
-    Invoke-Expression ("Install-Chezmoi " + $params)
-} catch {
-    Write-Host "An error occurred while installing: $_"
-} finally {
-    Pop-Location
+trap {
+    Invoke-CleanUp $tempDir
+    break
+}
 
-    if (Test-Path $tempdir) {
-        Remove-Item -LiteralPath $tempdir -Recurse -Force
+$BaseUrl = 'https://github.com/twpayne/chezmoi/releases'
+
+# convert $BinDir to an absolute path
+$BinDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BinDir)
+
+$tempDir = ''
+do {
+    $tempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ([System.Guid]::NewGuid())
+} while (Test-Path -Path $tempDir)
+New-Item -ItemType Directory -Path $tempDir | Out-Null
+
+Write-DebugVariable 'BinDir', 'Tag', 'ChezmoiArgs', 'tempDir'
+
+$goOS = Get-GoOS
+$goArch = Get-GoArch
+foreach ($variableName in @('goOS', 'goArch')) {
+    Write-DebugVariable $variableName
+}
+
+$realTag = Get-RealTag $Tag
+$version = $realTag.TrimStart('v')
+Write-Information "found version ${version} for ${Tag}/${goOS}/${goArch}"
+
+$binarySuffix = ''
+$archiveFormat = 'tar.gz'
+$goOSExtra = ''
+switch ($goOS) {
+    'linux' {
+        $goOSExtra = "-$( Get-LibC )"
+        break
     }
+    'windows' {
+        $binarySuffix = '.exe'
+        $archiveFormat = 'zip'
+        break
+    }
+}
+Write-DebugVariable 'binarySuffix', 'archiveFormat', 'goOSExtra'
+
+$archiveFilename = "chezmoi_${version}_${goOS}${goOSExtra}_${goArch}.${archiveFormat}"
+$tempArchivePath = Join-Path -Path $tempDir -ChildPath $archiveFilename
+Write-DebugVariable 'archiveFilename', 'tempArchivePath'
+Invoke-FileDownload "${BaseUrl}/download/${realTag}/${archiveFilename}" $tempArchivePath
+
+$checksums = Get-Checksums $realTag $version
+Confirm-Checksum $tempArchivePath $checksums
+
+Expand-ChezmoiArchive $tempArchivePath
+
+$binaryFilename = "chezmoi${binarySuffix}"
+$tempBinaryPath = Join-Path -Path $tempDir -ChildPath $binaryFilename
+Write-DebugVariable 'binaryFilename', 'tempBinaryPath'
+[System.IO.Directory]::CreateDirectory($BinDir) | Out-Null
+$binary = Join-Path -Path $BinDir -ChildPath $binaryFilename
+Write-DebugVariable 'binary'
+Move-Item -Path $tempBinaryPath -Destination $binary -Force
+Write-Information "installed ${binary}"
+
+Invoke-CleanUp $tempDir
+
+if (($null -ne $ChezmoiArgs) -and ($ChezmoiArgs.Count -gt 0)) {
+    & $binary $ChezmoiArgs
 }

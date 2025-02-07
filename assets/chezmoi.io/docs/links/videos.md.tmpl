@@ -1,0 +1,11 @@
+# Videos
+
+!!! tip
+
+    Recommended video: [chezmoi: manage your dotfiles across multiple, diverse machines, securely](https://fosdem.org/2021/schedule/event/chezmoi/)
+
+| Date | Version | Language | Title |
+| ---- | ------- | -------- | ----- |
+{{- range mustReverse .videos }}
+| {{ .date }} | {{ .version }} | {{ .lang | default "EN" }} | [{{ .title }}]({{ .url }}) |
+{{- end }}

@@ -1,0 +1,84 @@
+mockcommand bin/rbw
+
+# test rbw template function
+exec chezmoi execute-template '{{ (rbw "test-entry").data.password }}'
+stdout ^hunter2$
+
+# test rbw template function with extra args
+exec chezmoi execute-template '{{ (rbw "test-entry" "--folder" "my-folder").data.password }}'
+stdout ^correcthorsebatterystaple$
+
+# test rbwFields template function
+exec chezmoi execute-template '{{ (rbwFields "test-entry").something.value }}'
+stdout ^secret$
+
+# test rbwFields template function with extra args
+exec chezmoi execute-template '{{ (rbwFields "test-entry" "--folder" "my-folder").something.value }}'
+stdout ^enigma$
+
+-- bin/rbw.yaml --
+responses:
+- args: 'get --raw test-entry'
+  response: |
+    {
+      "id": "adf723e1-ab03-4ff3-81aa-f5f3c2b68a5f",
+      "folder": null,
+      "name": "test-entry",
+      "data": {
+        "username": "foo",
+        "password": "hunter2",
+        "totp": null,
+        "uris": [
+          {
+            "uri": "example.com",
+            "match_type": null
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "something",
+          "value": "secret"
+        }
+      ],
+      "notes": "blah",
+      "history": [
+        {
+          "last_used_date": "2022-08-18T23:24:47.994Z",
+          "password": "hunter2"
+        }
+      ]
+    }
+- args: 'get --raw test-entry --folder my-folder'
+  response: |
+    {
+      "id": "adf723e1-ab03-4ff3-81aa-f5f3c2b68a5f",
+      "folder": null,
+      "name": "test-entry",
+      "data": {
+        "username": "foo",
+        "password": "correcthorsebatterystaple",
+        "totp": null,
+        "uris": [
+          {
+            "uri": "example.com",
+            "match_type": null
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "something",
+          "value": "enigma"
+        }
+      ],
+      "notes": "blah",
+      "history": [
+        {
+          "last_used_date": "2022-08-18T23:24:47.994Z",
+          "password": "hunter2"
+        }
+      ]
+    }
+default:
+  exitCode: 1

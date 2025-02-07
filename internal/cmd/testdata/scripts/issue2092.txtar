@@ -1,0 +1,40 @@
+[windows] skip 'UNIX only'
+
+# test that chezmoi dump warns when the config file has not been generated
+exec chezmoi dump
+[umask:002] cmp stdout golden/dump-umask-002.json
+[umask:022] cmp stdout golden/dump-umask-022.json
+stderr 'config file template has changed'
+
+# test that chezmoi dump does not return an error when the config file template has been modified
+exec chezmoi init
+edit $CHEZMOICONFIGDIR${/}chezmoi.toml
+exec chezmoi dump
+[umask:002] cmp stdout golden/dump-umask-002.json
+[umask:022] cmp stdout golden/dump-umask-022.json
+! stderr .
+
+-- golden/dump-umask-002.json --
+{
+  ".file": {
+    "type": "file",
+    "name": ".file",
+    "contents": "# contents of .file\n",
+    "perm": 436
+  }
+}
+-- golden/dump-umask-022.json --
+{
+  ".file": {
+    "type": "file",
+    "name": ".file",
+    "contents": "# contents of .file\n",
+    "perm": 420
+  }
+}
+-- home/user/.file --
+# contents of .file
+-- home/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+[data]
+-- home/user/.local/share/chezmoi/dot_file --
+# contents of .file
