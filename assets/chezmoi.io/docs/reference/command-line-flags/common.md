@@ -2,38 +2,59 @@
 
 The following flags apply to multiple commands where they are relevant.
 
-## `-f`, `--format` `json`|`yaml`
+## Flags
 
-Set the output format.
+### `-x`, `--exclude` *types*
 
-## `-i`, `--include` *types*
+--8<-- "common-flags/exclude.md"
 
-Only operate on target state entries of type *types*. *types* is a
-comma-separated list of target states (`all`, `dirs`, `files`, `remove`,
-`scripts`, `symlinks`, and `encrypted`) and can be excluded by preceding them
-with a `no`.
+### `-f`, `--format` `json`|`yaml`
 
-!!! example
+--8<-- "common-flags/format.md"
 
-    `--include=dirs,files` will cause the command to apply to directories and
-    files only.
+### `-h`, `--help`
 
-## `--init`
+Print help.
 
-Regenerate and reread the config file from the config file template before
-computing the target state.
+### `-i`, `--include` *types*
 
-## `-r`, `--recursive`
+--8<-- "common-flags/include.md"
 
-Recurse into subdirectories, `true` by default.
+### `--init`
 
-## `-x`, `--exclude` *types*
+--8<-- "common-flags/init.md"
 
-Exclude target state entries of type *types*. *types* is a comma-separated list
-of target states (`all`, `dirs`, `files`, `remove`, `scripts`, `symlinks`, and
-`encrypted`).
+### `-P`, `--parent-dirs`
 
-!!! example
+--8<-- "common-flags/parent-dirs.md"
 
-    `--exclude=scripts` will cause the command to not run scripts and
-    `--exclude=encrypted` will exclude encrypted files.
+### `-p`, `--path-style` *style*
+
+--8<-- "common-flags/path-style.md:all"
+
+### `-r`, `--recursive`
+
+--8<-- "common-flags/recursive.md:default-false"
+
+### `--tree`
+
+--8<-- "common-flags/tree.md"
+
+## Available entry types
+
+You can provide a list of entry types, separated by commas.
+Types can be preceded with `no` to remove them, e.g. `scripts,noalways`.
+
+| Type        | Description                 |
+| ----------- | --------------------------- |
+| `all`       | All entries                 |
+| `none`      | No entries                  |
+| `dirs`      | Directories                 |
+| `files`     | Files                       |
+| `remove`    | Removes                     |
+| `scripts`   | Scripts                     |
+| `symlinks`  | Symbolic links              |
+| `always`    | Scripts that are always run |
+| `encrypted` | Encrypted entries           |
+| `externals` | External entries            |
+| `templates` | Templates                   |

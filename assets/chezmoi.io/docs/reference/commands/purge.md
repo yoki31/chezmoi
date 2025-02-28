@@ -3,13 +3,21 @@
 Remove chezmoi's configuration, state, and source directory, but leave the
 target state intact.
 
-## `-f`, `--force`
+## Flags
+
+### `-P`, `--binary`
+
+Purge chezmoi binary.
+
+## Common flags
+
+### `--force`
 
 Remove without prompting.
 
-!!! example
+## Examples
 
-    ```console
-    $ chezmoi purge
-    $ chezmoi purge --force
-    ```
+```sh
+chezmoi purge
+chezmoi purge --force
+```

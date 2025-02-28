@@ -1,0 +1,60 @@
+[project]
+name = "chezmoi"
+version = "2.59.1"
+classifiers = ["Private :: Do Not Upload"]
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.uv]
+dev-dependencies = [
+  "mkdocs-material==9.6.2",
+  "mkdocs-mermaid2-plugin==1.2.1",
+  "mkdocs==1.6.1",
+  "pymdown-extensions==10.14.3",
+  "ruamel-yaml==0.18.10",
+  "ruff==0.9.4",
+  "taskipy==1.14.1",
+]
+
+[tool.taskipy.tasks]
+build-docs = { cmd = "mkdocs build -f assets/chezmoi.io/mkdocs.yml" }
+serve-docs = { cmd = "mkdocs serve -f assets/chezmoi.io/mkdocs.yml" }
+deploy-docs = { cmd = "cd assets/chezmoi.io && mkdocs gh-deploy" }
+lint = { cmd = "ruff check" }
+format = { cmd = "ruff format" }
+pycheck = { cmd = "task lint && task format --diff" }
+pyfix = { cmd = "task lint --fix && task format" }
+format-yaml = { cmd = "./assets/scripts/format-yaml.py" }
+
+[tool.ruff]
+include = [
+  "pyproject.toml",
+  "assets/chezmoi.io/docs/hooks.py",
+  "assets/chezmoi.io/docs/shortcodes.py",
+  "assets/scripts/format-yaml.py",
+]
+target-version = "py310"
+
+[tool.ruff.lint]
+extend-select = [
+  "A",
+  "B",
+  "E",
+  "F",
+  "I",
+  "W",
+  "ANN",
+  "COM",
+  "FA",
+  "UP",
+  "PL",
+  "PTH",
+  "SIM",
+]
+ignore = ["ANN003", "COM812"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.uv.workspace]
+members = ["chezmoi"]

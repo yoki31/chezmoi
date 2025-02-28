@@ -1,0 +1,32 @@
+mockcommand bin/gopass
+[windows] unix2dos golden/gopass-raw
+
+# test gopass template function
+exec chezmoi execute-template '{{ gopass "misc/example.com" }}'
+stdout ^examplepassword$
+
+# test gopass template function
+exec chezmoi execute-template '{{ gopassRaw "misc/example.com" }}'
+cmp stdout golden/gopass-raw
+
+-- bin/gopass.yaml --
+responses:
+- args: '--version'
+  response: 'gopass 1.10.1 go1.15 linux amd64'
+- args: 'show --noparsing misc/example.com'
+  response: |
+    Secret: misc/example.com
+
+    examplepassword
+    key: value
+- args: 'show --password misc/example.com'
+  response: 'examplepassword'
+  suppressLastNewline: true
+default:
+  response: 'gopass: invalid command: $*'
+  exitCode: 1
+-- golden/gopass-raw --
+Secret: misc/example.com
+
+examplepassword
+key: value

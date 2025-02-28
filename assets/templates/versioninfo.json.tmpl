@@ -1,0 +1,35 @@
+{{- $name := "chezmoi" -}}
+{{- $filename := printf "%s.exe" $name -}}
+
+{{- $comments := "" -}}
+{{- if exists ".git" -}}
+{{-   $commitHash := output "git" "rev-parse" "HEAD" | trim -}}
+{{-   if ne "" (output "git" "diff" "--stat" | trim) -}}
+{{-     $commitHash = printf "%s-dirty" $commitHash -}}
+{{-   end -}}
+{{-   $comments = printf "commit: %s" $commitHash -}}
+{{- end -}}
+
+{{- $versionStr := "v0.0.0" -}}
+{{- if and (exists ".git") (output "git" "tag" "--list" | trim) -}}
+{{-   $versionStr = output "git" "describe" "--abbrev=0" "--tags" | trim -}}
+{{- end -}}
+{{- $versionDict := dict -}}
+{{- with semver $versionStr -}}
+{{-   $versionDict = (dict "Major" .Major "Minor" .Minor "Patch" .Patch "Build" 0) -}}
+{{- end -}}
+
+{{- dict
+      "FixedFileInfo" (dict
+        "FileVersion" $versionDict
+        "ProductVersion" $versionDict)
+      "StringFileInfo" (dict
+        "Comments" $comments
+        "FileDescription" "Manage your dotfiles across multiple diverse machines, securely."
+        "FileVersion" $versionStr
+        "InternalName" $filename
+        "LegalCopyright" (printf "Copyright (c) 2018-%s Tom Payne" (now | date "2006"))
+        "OriginalFilename" $filename
+        "ProductName" $name
+        "ProductVersion" $versionStr)
+      | toPrettyJson }}

@@ -1,0 +1,216 @@
+[windows] skip 'UNIX only'
+
+chmod 755 bin/age
+chmod 755 bin/bw
+chmod 755 bin/bws
+chmod 755 bin/dcli
+chmod 755 bin/doppler
+chmod 755 bin/git
+chmod 755 bin/gopass
+chmod 755 bin/gpg
+chmod 755 bin/keepassxc-cli
+chmod 755 bin/keeper
+chmod 755 bin/lpass
+chmod 755 bin/op
+chmod 755 bin/pass
+chmod 755 bin/ph
+chmod 755 bin/pinentry
+chmod 755 bin/rbw
+chmod 755 bin/secret
+chmod 755 bin/shell
+chmod 755 bin/vault
+chmod 755 bin/vimdiff
+chmod 755 bin/vlt
+
+mkhomedir
+mksourcedir
+
+# test that chezmoi doctor behaves as expected
+exec chezmoi doctor
+stdout '^ok\s+version\s+'
+stdout '^\w+\s+latest-version\s+'
+stdout '^ok\s+os-arch\s+'
+! stdout '^\S+\s+systeminfo\s+'
+stdout '^ok\s+uname\s+'
+stdout '^ok\s+config-file\s+'
+stdout '^ok\s+source-dir\s+'
+stdout '^warning\s+suspicious-entries\s+'
+stdout '^ok\s+dest-dir\s+'
+stdout '^ok\s+shell-command\s+'
+stdout '^ok\s+shell-args\s+'
+stdout '^ok\s+cd-command\s+'
+stdout '^ok\s+cd-args\s+'
+stdout '^ok\s+edit-command\s+'
+stdout '^ok\s+edit-args\s+'
+stdout '^ok\s+git-command\s+'
+stdout '^ok\s+merge-command\s+'
+stdout '^warning\s+age-command\s+'
+stdout '^ok\s+gpg-command\s+'
+stdout '^ok\s+pinentry-command\s+'
+stdout '^ok\s+1password-command\s+'
+stdout '^ok\s+bitwarden-command\s+'
+stdout '^ok\s+bitwarden-secrets-command\s+'
+stdout '^ok\s+dashlane-command\s+'
+stdout '^ok\s+doppler-command\s+'
+stdout '^ok\s+gopass-command\s+'
+stdout '^ok\s+keepassxc-command\s+'
+stdout '^info\s+keepassxc-db\s+'
+stdout '^ok\s+keeper-command\s+'
+stdout '^ok\s+passhole-command\s+'
+stdout '^ok\s+lastpass-command\s+'
+stdout '^ok\s+pass-command\s+'
+stdout '^ok\s+rbw-command\s+'
+stdout '^ok\s+vault-command\s+'
+stdout '^ok\s+vlt-command\s+'
+stdout '^ok\s+secret-command\s+'
+
+chhome home2/user
+
+# test that chezmoi doctor warns about missing directories on an empty system
+! exec chezmoi doctor
+stdout '^info\s+config-file\s+'
+stdout '^error\s+source-dir\s+'
+stdout '^ok\s+suspicious-entries\s+'
+
+chhome home3/user
+
+# test that chezmoi doctor warns about suspicious entries
+exec chezmoi doctor
+stdout '^warning\s+suspicious-entries\s+'
+
+chhome home4/user
+
+# test that chezmoi doctor prints an error about multiple config files
+! exec chezmoi doctor
+stdout '^error\s+config-file\s+multiple config files'
+! stderr .
+
+chhome home5/user
+
+# test that chezmoi doctor warns about encrypted files
+exec chezmoi doctor
+stdout '^warning\s+suspicious-entries\s+'
+
+-- bin/age --
+#!/bin/sh
+
+echo "(devel)"
+-- bin/bw --
+#!/bin/sh
+
+echo '(node:84023) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.' 1>&2
+echo '(Use `node --trace-deprecation ...` to show where the warning was created)' 1>&2
+echo "2023.10.0"
+-- bin/bws --
+#!/bin/sh
+
+echo "Bitwarden Secrets CLI 0.3.0"
+-- bin/dcli --
+#!/bin/sh
+
+echo 1.0.0
+-- bin/doppler --
+#!/bin/sh
+
+echo "v3.65.1"
+-- bin/git --
+#!/bin/sh
+
+echo "git version 2.29.2"
+-- bin/gopass --
+#!/bin/sh
+
+echo "gopass 1.10.1 go1.15 linux amd64"
+-- bin/gpg --
+#!/bin/sh
+
+echo "gpg (GnuPG) 2.2.23"
+echo "libgcrypt 1.8.7"
+echo "Copyright (C) 2020 Free Software Foundation, Inc."
+echo "License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>"
+echo "This is free software: you are free to change and redistribute it."
+echo "There is NO WARRANTY, to the extent permitted by law."
+echo ""
+echo "Home: /home/user/.gnupg"
+echo "Supported algorithms:"
+echo "Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA"
+echo "Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256, TWOFISH,"
+echo "        CAMELLIA128, CAMELLIA192, CAMELLIA256"
+echo "Hash: SHA1, RIPEMD160, SHA256, SHA384, SHA512, SHA224"
+echo "Compression: Uncompressed, ZIP, ZLIB, BZIP2"
+-- bin/keepassxc-cli --
+#!/bin/sh
+
+echo "2.7.0"
+-- bin/keeper --
+#!/bin/sh
+
+echo "Commander Version: 16.6.4 (Current version)"
+-- bin/lpass --
+#!/bin/sh
+
+echo "LastPass CLI v1.3.3.GIT"
+-- bin/op --
+#!/bin/sh
+
+echo "2.0.0"
+-- bin/pass --
+#!/bin/sh
+
+echo "============================================"
+echo "= pass: the standard unix password manager ="
+echo "=                                          ="
+echo "=                  v1.7.3                  ="
+echo "=                                          ="
+echo "=             Jason A. Donenfeld           ="
+echo "=               Jason@zx2c4.com            ="
+echo "=                                          ="
+echo "=      http://www.passwordstore.org/       ="
+echo "============================================"
+-- bin/ph --
+#!/bin/sh
+
+echo 1.10.0
+-- bin/pinentry --
+#!/bin/sh
+
+echo "pinentry-curses (pinentry) 1.2.0"
+echo "Copyright (C) 2016 g10 Code GmbH"
+echo "License GPLv2+: GNU GPL version 2 or later <https://www.gnu.org/licenses/>"
+echo "This is free software: you are free to change and redistribute it."
+echo "There is NO WARRANTY, to the extent permitted by law."
+-- bin/rbw --
+#!/bin/sh
+
+echo rbw 1.7.0
+-- bin/secret --
+#!/bin/sh
+-- bin/shell --
+#!/bin/sh
+-- bin/vault --
+#!/bin/sh
+
+echo "Vault v1.5.5 ('f5d1ddb3750e7c28e25036e1ef26a4c02379fc01+CHANGES')"
+-- bin/vimdiff --
+#!/bin/sh
+-- bin/vlt --
+#!/bin/sh
+
+echo "0.2.1, git sha (8d9af42c8b98c9527741a239b23a3e384812f514), go1.20.4 arm64"
+-- home/user/.config/chezmoi/chezmoi.toml --
+[pinentry]
+    command = "pinentry"
+[secret]
+    command = "secret"
+-- home/user/.local/share/chezmoi/.chezmoidata.json --
+-- home/user/.local/share/chezmoi/.chezmoiexternal.toml --
+-- home/user/.local/share/chezmoi/.chezmoiscripts/.keep --
+-- home/user/.local/share/chezmoi/dot_config/chezmoi/chezmoi.toml.tmpl --
+-- home3/user/.local/share/chezmoi/.chezmoisuspicious --
+-- home4/user/.config/chezmoi/chezmoi.json --
+-- home4/user/.config/chezmoi/chezmoi.yaml --
+-- home5/user/.config/chezmoi/chezmoi.toml --
+encryption = "age"
+[age]
+    suffix = ".age-encrypted"
+-- home5/user/.local/share/chezmoi/dot_config/chezmoi/encrypted_chezmoi.toml.age-encrypted --

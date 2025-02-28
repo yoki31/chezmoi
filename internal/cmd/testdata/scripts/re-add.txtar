@@ -1,0 +1,31 @@
+mkhomedir
+mksourcedir
+
+# test that chezmoi re-add adds all modified files
+exec chezmoi apply --force
+edit $HOME/.file
+edit $HOME/.dir/file
+edit $HOME/.dir/subdir/file
+exec chezmoi re-add
+grep '# edited' $CHEZMOISOURCEDIR/dot_file
+grep '# edited' $CHEZMOISOURCEDIR/dot_dir/file
+grep '# edited' $CHEZMOISOURCEDIR/dot_dir/exact_subdir/file
+exec chezmoi diff
+! stdout .
+
+# test that chezmoi re-add adds only specified targets
+edit $HOME/.file
+edit $HOME/.dir/file
+edit $HOME/.dir/subdir/file
+exec chezmoi re-add ~/.dir/file
+grep -count=1 '# edited' $CHEZMOISOURCEDIR/dot_file
+grep -count=2 '# edited' $CHEZMOISOURCEDIR/dot_dir/file
+grep -count=1 '# edited' $CHEZMOISOURCEDIR/dot_dir/exact_subdir/file
+
+# test that chezmoi re-add --recursive=false does not recurse into subdirectories
+exec chezmoi re-add --recursive=false ~/.dir/subdir
+grep -count=1 '# edited' $CHEZMOISOURCEDIR/dot_dir/exact_subdir/file
+
+# test that chezmoi re-add is recursive by default
+exec chezmoi re-add ~/.dir/subdir
+grep -count=2 '# edited' $CHEZMOISOURCEDIR/dot_dir/exact_subdir/file

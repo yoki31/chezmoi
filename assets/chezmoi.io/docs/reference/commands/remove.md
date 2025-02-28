@@ -1,7 +1,7 @@
-# `remove` *target*...
+# `remove`
 
-Remove *target*s from both the source state and the destination directory.
+The `remove` command has been removed. Use the [`forget` command][forget] or
+the [`destroy` command][destroy] instead.
 
-## `-f`, `--force`
-
-Remove without prompting.
+[forget]: /reference/commands/forget.md
+[destroy]: /reference/commands/destroy.md

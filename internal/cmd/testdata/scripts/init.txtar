@@ -1,0 +1,186 @@
+[!exec:git] skip 'git not found in $PATH'
+
+mkgitconfig
+mkhomedir golden
+mkhomedir
+
+# test that chezmoi init creates a git repo
+exec chezmoi init
+exists $CHEZMOISOURCEDIR/.git
+
+# create a commit
+cp golden/chezmoi.toml $CHEZMOISOURCEDIR/.chezmoi.toml.tmpl
+cp golden/.file $CHEZMOISOURCEDIR/dot_file
+exec chezmoi git add .
+exec chezmoi git commit -- --message 'Initial commit'
+
+chhome home2/user
+
+# test that chezmoi init fetches git repo but does not apply
+mkgitconfig
+exec chezmoi init file://$WORK/home/user/.local/share/chezmoi
+exists $CHEZMOISOURCEDIR/.git
+! exists $HOME/.file
+
+chhome home3/user
+
+# test that chezmoi init --apply fetches a git repo and runs chezmoi apply
+mkgitconfig
+exec chezmoi init --apply --force file://$WORK/home/user/.local/share/chezmoi
+exists $CHEZMOISOURCEDIR/.git
+cmp $HOME/.file golden/.file
+
+chhome home4/user
+
+# test that chezmoi init --apply --depth 1 --force --purge clones, applies, and purges
+mkgitconfig
+exists $CHEZMOICONFIGDIR
+! exists $CHEZMOISOURCEDIR
+exec chezmoi init --apply --depth 1 --force --purge file://$WORK/home/user/.local/share/chezmoi
+cmp $HOME/.file golden/.file
+! exists $CHEZMOICONFIGDIR
+! exists $CHEZMOISOURCEDIR
+
+chhome home5/user
+
+# test that chezmoi init does not clone the repo if it is already checked out but does create the config file
+mkgitconfig
+exec chezmoi init --source=$HOME/dotfiles file://$WORK/nonexistentrepo
+exists $CHEZMOICONFIGDIR/chezmoi.toml
+
+chhome home6/user
+
+# test chezmoi init --one-shot
+mkgitconfig
+exec chezmoi init --one-shot file://$WORK/home/user/.local/share/chezmoi
+cmp $HOME/.file golden/.file
+! exists $CHEZMOICONFIGDIR
+! exists $CHEZMOISOURCEDIR
+
+chhome home7/user
+
+# test chezmoi init --data=true
+mkgitconfig
+exec chezmoi init --data=true file://$WORK/home/user/.local/share/chezmoi
+cmp $CHEZMOICONFIGDIR/chezmoi.toml golden/chezmoi.toml
+
+# test chezmoi init --data=false
+exec chezmoi init --data=false file://$WORK/home/user/.local/share/chezmoi
+cmp $CHEZMOICONFIGDIR/chezmoi.toml golden/chezmoi.toml-no-data
+
+chhome home8/user
+
+# test that chezmoi init fails if the generated config is not valid
+mkgitconfig
+! exec chezmoi init
+stderr '\.chezmoi\.toml\.tmpl: toml: expected character ='
+! exists .config/chezmoi
+
+chhome home/user
+
+# create a new branch
+exec chezmoi git checkout -- -b new-branch
+edit $CHEZMOISOURCEDIR/dot_file
+exec chezmoi git add dot_file
+exec chezmoi git commit -- --message 'Edit .file'
+exec chezmoi git checkout master
+
+chhome home9/user
+
+# test chezmoi init --branch
+mkgitconfig
+exec chezmoi init --apply --branch=new-branch file://$WORK/home/user/.local/share/chezmoi
+grep '# edited' $HOME/.file
+
+chhome home10/user
+
+# test chezmoi --config init
+mkgitconfig
+exec chezmoi --config=$HOME/.chezmoi.toml init file://$WORK/home/user/.local/share/chezmoi
+cmp $HOME/.chezmoi.toml golden/chezmoi.toml
+! exists $CHEZMOICONFIGDIR/chezmoi.toml
+
+chhome home11/user
+
+# test chezmoi init --config-path
+mkgitconfig
+exec chezmoi init --config-path=$HOME/.chezmoi.toml file://$WORK/home/user/.local/share/chezmoi
+cmp $HOME/.chezmoi.toml golden/chezmoi.toml
+! exists $CHEZMOICONFIGDIR/chezmoi.toml
+
+chhome home12/user
+
+# test chezmoi init when the source dir is already in a git working copy
+mkgitconfig
+exec git init $HOME/.local/share
+exec chezmoi init
+! exists $CHEZMOISOURCEDIR/.git
+
+chhome home13/user
+
+# test chezmoi init --prompt*
+exec chezmoi init --promptBool bool=true,boolOncePrompt=true --promptChoice=choice=one,choiceOncePrompt=two --promptInt int=1,intOncePrompt=2 --promptString string=string,stringOncePrompt=once --promptMultichoice multichoice=one/two,multichoiceOncePrompt=two/three
+cmp $CHEZMOICONFIGDIR/chezmoi.yaml golden/chezmoi.yaml
+
+chhome home14/user
+
+# test that chezmoi init creates a config file with a .yml extension
+exec chezmoi init
+exists $CHEZMOICONFIGDIR/chezmoi.yml
+
+# test that chezmoi reads a config file with a .yml extension
+exec chezmoi execute-template '{{ .key }}'
+stdout ^value$
+
+-- golden/chezmoi.toml --
+[data]
+    email = "firstname.lastname@company.com"
+-- golden/chezmoi.toml-no-data --
+[data]
+    email = "me@home.org"
+-- golden/chezmoi.yaml --
+data:
+  bool: true
+  boolOnce: true
+  choice: one
+  choiceOnce: two
+  int: 1
+  intOnce: 2
+  multichoice: ["one","two"]
+  multichoiceOnce: ["two","three"]
+  string: string
+  stringOnce: once
+-- home13/user/.local/share/chezmoi/.chezmoi.yaml.tmpl --
+data:
+  bool: {{ promptBool "bool" }}
+  boolOnce: {{ promptBoolOnce . "boolOnce" "boolOncePrompt" }}
+  choice: {{ promptChoice "choice" (list "one" "two" "three") }}
+  choiceOnce: {{ promptChoiceOnce . "choiceOnce" "choiceOncePrompt" (list "one" "two" "three") }}
+  int: {{ promptInt "int" }}
+  intOnce: {{ promptIntOnce . "intOnce" "intOncePrompt" }}
+  multichoice: {{ promptMultichoice "multichoice" (list "one" "two" "three") | toJson}}
+  multichoiceOnce: {{ promptMultichoiceOnce . "multichoiceOnce" "multichoiceOncePrompt" (list "one" "two" "three") | toJson }}
+  string: {{ promptString "string" }}
+  stringOnce: {{ promptStringOnce . "stringOnce" "stringOncePrompt" }}
+-- home14/user/.local/share/chezmoi/.chezmoi.yml.tmpl --
+data:
+    key: value
+-- home4/user/.config/chezmoi/chezmoi.toml --
+-- home5/user/dotfiles/.chezmoi.toml.tmpl --
+[data]
+    email = "me@home.org"
+-- home5/user/dotfiles/.git/.keep --
+-- home7/user/.config/chezmoi/chezmoi.toml --
+[data]
+    email = "firstname.lastname@company.com"
+-- home7/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+{{- $email := get . "email" -}}
+{{- if not $email -}}
+{{-   $email = "me@home.org" -}}
+{{- end -}}
+[data]
+    email = {{ $email | quote }}
+-- home7/user/.local/share/chezmoi/.git/.keep --
+-- home8/user/.local/share/chezmoi/.chezmoi.toml.tmpl --
+[diff]
+exclude: ["scripts"]

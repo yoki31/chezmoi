@@ -1,6 +1,6 @@
 # age
 
-chezmoi supports encrypting files with [age](https://age-encryption.org/).
+chezmoi supports encrypting files with [age][age].
 
 Generate a key using `age-keygen`:
 
@@ -19,8 +19,19 @@ encryption = "age"
     recipient = "age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p"
 ```
 
-chezmoi supports multiple recipients and recipient files, and multiple
-identities.
+chezmoi supports multiple identities and multiple recipients:
+
+```toml title="~/.config/chezmoi/chezmoi.toml"
+encryption = "age"
+[age]
+    identities = ["/home/user/key1.txt", "/home/user/key2.txt"]
+    recipients = ["recipient1", "recipient2"]
+```
+
+!!! note
+
+    Make sure `encryption` is added to the top level section at the beginning of
+    the config, before any other sections.
 
 ## Symmetric encryption
 
@@ -56,8 +67,8 @@ the `age` command is not found in `$PATH`.
 
 !!! info
 
-    The builtin age encryption not support passphrases, symmetric encryption,
-    or SSH keys.
+    The builtin age encryption does not support passphrases, symmetric
+    encryption, or SSH keys.
 
     Passphrases are not supported because chezmoi needs to decrypt files
     regularly, e.g. when running a `chezmoi diff` or a `chezmoi status`
@@ -65,12 +76,15 @@ the `age` command is not found in `$PATH`.
     each time would quickly become tiresome.
 
     Symmetric encryption may be supported in the future. Please [open an
-    issue](https://github.com/twpayne/chezmoi/issues/new?assignees=&labels=enhancement&template=02_feature_request.md&title=)
-    if you want this.
+    issue][issue] if you want this.
 
-    SSH keys are not supported as the author of age [explicitly recommends not
-    using them](https://pkg.go.dev/filippo.io/age#hdr-Key_management):
+    SSH keys are not supported as the [age documentation explicitly recommends
+    not using them][nossh]:
 
     > When integrating age into a new system, it's recommended that you only
     > support X25519 keys, and not SSH keys. The latter are supported for
     > manual encryption operations.
+
+[age]: https://age-encryption.org/
+[issue]: https://github.com/twpayne/chezmoi/issues/new?assignees=&labels=enhancement&template=02_feature_request.md&title=
+[nossh]: https://pkg.go.dev/filippo.io/age#hdr-Key_management

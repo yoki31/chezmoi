@@ -1,0 +1,166 @@
+# test that chezmoi completion bash generates bash completions
+exec chezmoi completion bash
+stdout '# bash completion V2 for chezmoi'
+
+# test that chezmoi completion fish generates fish completions
+exec chezmoi completion fish
+stdout '# fish completion for chezmoi'
+
+# test that chezmoi completion powershell generates powershell completions
+exec chezmoi completion powershell
+stdout 'Register-ArgumentCompleter'
+
+# test that chezmoi completion zsh generates zsh completions
+exec chezmoi completion zsh
+stdout '#compdef chezmoi'
+
+# test that --color t values are completed
+exec chezmoi __complete --color t
+cmp stdout golden/auto-bool-t
+
+# test that --config-format flags are completed
+exec chezmoi __complete --config-format ''
+cmp stdout golden/config-format
+
+# test that --mode values are completed
+exec chezmoi __complete --mode ''
+cmp stdout golden/mode
+
+# test that --use-builtin flags are completed
+exec chezmoi __complete --use-builtin
+cmp stdout golden/use-builtin-flags
+
+# test that add --secrets values are completed
+exec chezmoi __complete add --secrets=
+cmp stdout golden/secrets
+
+# test that apply --exclude values are completed
+exec chezmoi __complete apply --exclude=
+cmp stdout golden/entry-type-set
+
+# test that apply --include values are completed
+exec chezmoi __complete apply --include=
+cmp stdout golden/entry-type-set
+
+# test that apply --refresh-externals values are completed
+exec chezmoi __complete apply --refresh-externals=
+cmp stdout golden/refresh-externals
+
+# test that archive --format values are completed
+exec chezmoi __complete archive --format=
+cmp stdout golden/archive-format
+
+# test that data --format values are completed
+exec chezmoi __complete data --format=
+cmp stdout golden/output-format-with-empty
+
+# test that dump --format values are completed
+exec chezmoi __complete dump --format=
+cmp stdout golden/output-format-with-empty
+
+# test that dump-config --format values are completed
+exec chezmoi __complete dump-config --format=
+cmp stdout golden/output-format-with-empty
+
+# test that managed path style values are completed
+exec chezmoi __complete managed --path-style=
+cmp stdout golden/path-style-with-source
+
+# test that state data --format values are completed
+exec chezmoi __complete state data --format=
+cmp stdout golden/output-format-with-empty
+
+# test that state dump --format values are completed
+exec chezmoi __complete state dump --format=
+cmp stdout golden/output-format-with-empty
+
+# test that status path style values are completed
+exec chezmoi __complete status --path-style=
+cmp stdout golden/path-style
+
+# test that unmanaged path style values are completed
+exec chezmoi __complete unmanaged --path-style=
+cmp stdout golden/unmanaged-path-style
+
+-- golden/archive-format --
+
+tar
+tar.gz
+tgz
+zip
+:4
+-- golden/auto-bool-t --
+t
+true
+:4
+-- golden/config-format --
+
+json
+toml
+yaml
+:4
+-- golden/entry-type-set --
+all
+always
+dirs
+encrypted
+externals
+files
+noalways
+nodirs
+noencrypted
+noexternals
+nofiles
+none
+noremove
+noscripts
+nosymlinks
+notemplates
+remove
+scripts
+symlinks
+templates
+:6
+-- golden/mode --
+file
+symlink
+:4
+-- golden/output-format --
+json
+yaml
+:4
+-- golden/output-format-with-empty --
+
+json
+yaml
+:4
+-- golden/path-style --
+absolute
+relative
+:4
+-- golden/path-style-with-source --
+absolute
+all
+relative
+source-absolute
+source-relative
+:4
+-- golden/refresh-externals --
+always
+auto
+never
+:4
+-- golden/secrets --
+error
+ignore
+warning
+:4
+-- golden/unmanaged-path-style --
+absolute
+relative
+:4
+-- golden/use-builtin-flags --
+--use-builtin-age	Use builtin age
+--use-builtin-diff	Use builtin diff
+--use-builtin-git	Use builtin git
+:4

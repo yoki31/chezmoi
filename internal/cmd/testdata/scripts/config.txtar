@@ -1,0 +1,48 @@
+# test default config
+exec chezmoi data --format=yaml
+stdout 'sourceDir: .*/home/user/.local/share/chezmoi'
+
+# test that flags override default config
+exec chezmoi data --format=yaml --source=/flag/source
+stdout 'sourceDir: .*/flag/source'
+
+chhome home2/user
+
+# test that flags override default config
+exec chezmoi execute-template --source=/flag/source '{{ .chezmoi.sourceDir }}'
+stdout /flag/source
+
+# test that config files override default config
+exec chezmoi data --format=yaml
+stdout 'sourceDir: .*/config/source'
+
+# test that the config file can be set and can be in YAML format
+exec chezmoi data --config=$HOME/.chezmoi.yaml --format=yaml
+stdout 'sourceDir: .*/config2/source'
+
+# test that the config file can be in JSONC format
+exec chezmoi data --config=$HOME/.chezmoi.jsonc --format=yaml
+stdout 'sourceDir: .*/config3/source'
+
+# test that the cache directory can be set
+exec chezmoi data --cache=/flag/cache --format=yaml
+stdout 'cacheDir: .*/flag/cache'
+
+[windows] stop 'remaining tests require /dev/stdin'
+
+# test that chezmoi can read the config from stdin
+stdin home2/user/.chezmoi.yaml
+exec chezmoi data --config=/dev/stdin --config-format=yaml --format=yaml
+stdout 'sourceDir: .*/config2/source'
+
+-- home2/user/.chezmoi.jsonc --
+{
+    "color": "auto",                // Color
+    "sourceDir": "/config3/source", // Source directory
+}
+-- home2/user/.chezmoi.yaml --
+color: auto
+sourceDir: /config2/source
+-- home2/user/.config/chezmoi/chezmoi.toml --
+color = "auto"
+sourceDir = "/config/source"

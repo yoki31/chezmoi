@@ -2,15 +2,37 @@ site_name: chezmoi
 site_url: https://chezmoi.io
 site_description: Manage your dotfiles across multiple machines, securely.
 site_author: Tom Payne
-copyright: Copyright © Tom Payne 2018-2022
+copyright: Copyright © Tom Payne 2018-2025
 repo_name: twpayne/chezmoi
 repo_url: https://github.com/twpayne/chezmoi
 edit_uri: edit/master/assets/chezmoi.io/docs/
+strict: true
+
+validation:
+  omitted_files: warn
+  absolute_links: relative_to_docs
+  unrecognized_links: warn
+  anchors: warn
 
 theme:
   name: material
   logo: logo.svg
   language: en
+  palette:
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/toggle-switch
+      name: Switch to dark mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: indigo
+    accent: indigo
+    toggle:
+      icon: material/toggle-switch-off-outline
+      name: Switch to light mode
   features:
   - navigation.expand
   - navigation.indexes
@@ -29,10 +51,11 @@ nav:
   - Comparison table: comparison-table.md
   - Migrating from another dotfile manager: migrating-from-another-dotfile-manager.md
 - User guide:
+  - Command overview: user-guide/command-overview.md
   - Setup: user-guide/setup.md
   - Daily operations: user-guide/daily-operations.md
   - Manage different types of file: user-guide/manage-different-types-of-file.md
-  - Include dotfiles from elsewhere: user-guide/include-dotfiles-from-elsewhere.md
+  - Include files from elsewhere: user-guide/include-files-from-elsewhere.md
   - Manage machine-to-machine differences: user-guide/manage-machine-to-machine-differences.md
   - Use scripts to perform actions: user-guide/use-scripts-to-perform-actions.md
   - Templating: user-guide/templating.md
@@ -40,33 +63,46 @@ nav:
     - Editor: user-guide/tools/editor.md
     - Diff: user-guide/tools/diff.md
     - Merge: user-guide/tools/merge.md
-    - Pager: user-guide/tools/pager.md
     - HTTP or SOCKS5 proxy: user-guide/tools/http-or-socks5-proxy.md
   - Password managers:
     - user-guide/password-managers/index.md
     - 1Password: user-guide/password-managers/1password.md
+    - AWS Secrets Manager: user-guide/password-managers/aws-secrets-manager.md
+    - Azure Key Vault: user-guide/password-managers/azure-key-vault.md
     - Bitwarden: user-guide/password-managers/bitwarden.md
+    - Dashlane: user-guide/password-managers/dashlane.md
+    - Doppler: user-guide/password-managers/doppler.md
+    - ejson: user-guide/password-managers/ejson.md
     - gopass: user-guide/password-managers/gopass.md
+    - Hashicorp Vault Secrets: user-guide/password-managers/hcp-vault-secrets.md
     - KeePassXC: user-guide/password-managers/keepassxc.md
     - Keychain and Windows Credentials Manager: user-guide/password-managers/keychain-and-windows-credentials-manager.md
+    - Keeper: user-guide/password-managers/keeper.md
     - LastPass: user-guide/password-managers/lastpass.md
     - pass: user-guide/password-managers/pass.md
+    - passhole: user-guide/password-managers/passhole.md
     - Vault: user-guide/password-managers/vault.md
     - Custom: user-guide/password-managers/custom.md
   - Encryption:
     - user-guide/encryption/index.md
     - age: user-guide/encryption/age.md
     - gpg: user-guide/encryption/gpg.md
+    - rage: user-guide/encryption/rage.md
   - Machines:
     - General: user-guide/machines/general.md
+    - Linux: user-guide/machines/linux.md
     - macOS: user-guide/machines/macos.md
     - Windows: user-guide/machines/windows.md
     - Containers and VMs: user-guide/machines/containers-and-vms.md
   - Advanced:
     - Customize your source directory: user-guide/advanced/customize-your-source-directory.md
+    - Install packages declaratively: user-guide/advanced/install-packages-declaratively.md
+    - Install your password manager on init: user-guide/advanced/install-your-password-manager-on-init.md
+    - Use chezmoi with Watchman: user-guide/advanced/use-chezmoi-with-watchman.md
     - Migrate away from chezmoi: user-guide/advanced/migrate-away-from-chezmoi.md
   - Frequently asked questions:
     - Usage: user-guide/frequently-asked-questions/usage.md
+    - Encryption: user-guide/frequently-asked-questions/encryption.md
     - Troubleshooting: user-guide/frequently-asked-questions/troubleshooting.md
     - Design: user-guide/frequently-asked-questions/design.md
     - General: user-guide/frequently-asked-questions/general.md
@@ -76,63 +112,81 @@ nav:
   - Source state attributes: reference/source-state-attributes.md
   - Target types: reference/target-types.md
   - Application order: reference/application-order.md
+  - Configuration file:
+    - reference/configuration-file/index.md
+    - Variables: reference/configuration-file/variables.md
+    - Editor: reference/configuration-file/editor.md
+    - Hooks: reference/configuration-file/hooks.md
+    - Interpreters: reference/configuration-file/interpreters.md
+    - pinentry: reference/configuration-file/pinentry.md
+    - textconv: reference/configuration-file/textconv.md
+    - umask: reference/configuration-file/umask.md
+    - Warnings: reference/configuration-file/warnings.md
+  - Special files:
+    - reference/special-files/index.md
+    - .chezmoi.&lt;format&gt;.tmpl: reference/special-files/chezmoi-format-tmpl.md
+    - .chezmoidata.&lt;format&gt;: reference/special-files/chezmoidata-format.md
+    - .chezmoiexternal.&lt;format&gt;: reference/special-files/chezmoiexternal-format.md
+    - .chezmoiignore: reference/special-files/chezmoiignore.md
+    - .chezmoiremove: reference/special-files/chezmoiremove.md
+    - .chezmoiroot: reference/special-files/chezmoiroot.md
+    - .chezmoiversion: reference/special-files/chezmoiversion.md
+  - Special directories:
+    - reference/special-directories/index.md
+    - .chezmoidata/: reference/special-directories/chezmoidata.md
+    - .chezmoiexternals/: reference/special-directories/chezmoiexternals.md
+    - .chezmoiscripts/: reference/special-directories/chezmoiscripts.md
+    - .chezmoitemplates/: reference/special-directories/chezmoitemplates.md
   - Command line flags:
     - reference/command-line-flags/index.md
     - Global: reference/command-line-flags/global.md
     - Common: reference/command-line-flags/common.md
     - Developer: reference/command-line-flags/developer.md
-  - Configuration file:
-    - reference/configuration-file/index.md
-    - Variables: reference/configuration-file/variables.md
-    - Editor: reference/configuration-file/editor.md
-    - pinentry: reference/configuration-file/pinentry.md
-    - umask: reference/configuration-file/umask.md
-  - Special files and directories:
-    - reference/special-files-and-directories/index.md
-    - .chezmoi.&lt;format&gt;.tmpl: reference/special-files-and-directories/chezmoi-format-tmpl.md
-    - .chezmoidata.&lt;format&gt;: reference/special-files-and-directories/chezmoidata-format.md
-    - .chezmoiexternal.&lt;format&gt;: reference/special-files-and-directories/chezmoiexternal-format.md
-    - .chezmoiignore: reference/special-files-and-directories/chezmoiignore.md
-    - .chezmoiremove: reference/special-files-and-directories/chezmoiremove.md
-    - .chezmoiroot: reference/special-files-and-directories/chezmoiroot.md
-    - .chezmoiscripts: reference/special-files-and-directories/chezmoiscripts.md
-    - .chezmoitemplates: reference/special-files-and-directories/chezmoitemplates.md
-    - .chezmoiversion: reference/special-files-and-directories/chezmoiversion.md
   - Commands:
+    - reference/commands/index.md
     - add: reference/commands/add.md
+    - age: reference/commands/age.md
     - apply: reference/commands/apply.md
     - archive: reference/commands/archive.md
     - cat: reference/commands/cat.md
+    - cat-config: reference/commands/cat-config.md
     - cd: reference/commands/cd.md
     - chattr: reference/commands/chattr.md
     - completion: reference/commands/completion.md
     - data: reference/commands/data.md
     - decrypt: reference/commands/decrypt.md
+    - destroy: reference/commands/destroy.md
     - diff: reference/commands/diff.md
     - doctor: reference/commands/doctor.md
     - dump: reference/commands/dump.md
+    - dump-config: reference/commands/dump-config.md
     - edit: reference/commands/edit.md
     - edit-config: reference/commands/edit-config.md
+    - edit-config-template: reference/commands/edit-config-template.md
     - encrypt: reference/commands/encrypt.md
     - execute-template: reference/commands/execute-template.md
     - forget: reference/commands/forget.md
+    - generate: reference/commands/generate.md
     - git: reference/commands/git.md
     - help: reference/commands/help.md
-    - init: reference/commands/init.md
+    - ignored: reference/commands/ignored.md
     - import: reference/commands/import.md
+    - init: reference/commands/init.md
+    - license: reference/commands/license.md
     - list: reference/commands/list.md
     - manage: reference/commands/manage.md
     - managed: reference/commands/managed.md
     - merge: reference/commands/merge.md
     - merge-all: reference/commands/merge-all.md
     - purge: reference/commands/purge.md
-    - remove: reference/commands/remove.md
     - re-add: reference/commands/re-add.md
+    - remove: reference/commands/remove.md
     - rm: reference/commands/rm.md
     - secret: reference/commands/secret.md
     - source-path: reference/commands/source-path.md
     - state: reference/commands/state.md
     - status: reference/commands/status.md
+    - target-path: reference/commands/target-path.md
     - unmanage: reference/commands/unmanage.md
     - unmanaged: reference/commands/unmanaged.md
     - update: reference/commands/update.md
@@ -141,87 +195,202 @@ nav:
   - Templates:
     - reference/templates/index.md
     - Variables: reference/templates/variables.md
+    - Directives: reference/templates/directives.md
     - Functions:
       - reference/templates/functions/index.md
-      - bitwarden: reference/templates/functions/bitwarden.md
-      - bitwardenAttachment: reference/templates/functions/bitwardenAttachment.md
-      - bitwardenFields: reference/templates/functions/bitwardenFields.md
+      - comment: reference/templates/functions/comment.md
+      - completion: reference/templates/functions/completion.md
       - decrypt: reference/templates/functions/decrypt.md
+      - deleteValueAtPath: reference/templates/functions/deleteValueAtPath.md
       - encrypt: reference/templates/functions/encrypt.md
-      - exit: reference/templates/functions/exit.md
+      - eqFold: reference/templates/functions/eqFold.md
+      - findExecutable: reference/templates/functions/findExecutable.md
+      - findOneExecutable: reference/templates/functions/findOneExecutable.md
+      - fromIni: reference/templates/functions/fromIni.md
+      - fromJson: reference/templates/functions/fromJson.md
+      - fromJsonc: reference/templates/functions/fromJsonc.md
+      - fromToml: reference/templates/functions/fromToml.md
       - fromYaml: reference/templates/functions/fromYaml.md
-      - gitHubKeys: reference/templates/functions/gitHubKeys.md
-      - gitHubLatestRelease: reference/templates/functions/gitHubLatestRelease.md
-      - gopass: reference/templates/functions/gopass.md
-      - gopassRaw: reference/templates/functions/gopassRaw.md
+      - glob: reference/templates/functions/glob.md
+      - hexDecode: reference/templates/functions/hexDecode.md
+      - hexEncode: reference/templates/functions/hexEncode.md
       - include: reference/templates/functions/include.md
+      - includeTemplate: reference/templates/functions/includeTemplate.md
       - ioreg: reference/templates/functions/ioreg.md
+      - isExecutable: reference/templates/functions/isExecutable.md
       - joinPath: reference/templates/functions/joinPath.md
-      - keepassxc: reference/templates/functions/keepassxc.md
-      - keepassxcAttribute: reference/templates/functions/keepassxcAttribute.md
-      - keyring: reference/templates/functions/keyring.md
-      - lastpass: reference/templates/functions/lastpass.md
-      - lastpassRaw: reference/templates/functions/lastpassRaw.md
+      - jq: reference/templates/functions/jq.md
       - lookPath: reference/templates/functions/lookPath.md
+      - lstat: reference/templates/functions/lstat.md
       - mozillaInstallHash: reference/templates/functions/mozillaInstallHash.md
-      - onepassword: reference/templates/functions/onepassword.md
-      - onepasswordDocument: reference/templates/functions/onepasswordDocument.md
-      - onepasswordDetailsFields: reference/templates/functions/onepasswordDetailsFields.md
-      - onepasswordItemFields: reference/templates/functions/onepasswordItemFields.md
       - output: reference/templates/functions/output.md
-      - pass: reference/templates/functions/pass.md
-      - passFields: reference/templates/functions/passFields.md
-      - passRaw: reference/templates/functions/passRaw.md
-      - promptBool: reference/templates/functions/promptBool.md
-      - promptInt: reference/templates/functions/promptInt.md
-      - promptString: reference/templates/functions/promptString.md
-      - secret: reference/templates/functions/secret.md
-      - secretJSON: reference/templates/functions/secretJSON.md
+      - outputList: reference/templates/functions/outputList.md
+      - pruneEmptyDicts: reference/templates/functions/pruneEmptyDicts.md
+      - quoteList: reference/templates/functions/quoteList.md
+      - replaceAllRegex: reference/templates/functions/replaceAllRegex.md
+      - setValueAtPath: reference/templates/functions/setValueAtPath.md
       - stat: reference/templates/functions/stat.md
-      - stdinIsATTY: reference/templates/functions/stdinIsATTY.md
+      - toIni: reference/templates/functions/toIni.md
+      - toPrettyJson: reference/templates/functions/toPrettyJson.md
+      - toToml: reference/templates/functions/toToml.md
       - toYaml: reference/templates/functions/toYaml.md
-      - vault: reference/templates/functions/vault.md
-      - writeToStdout: reference/templates/functions/writeToStdout.md
-- Developer:
-  - Developing locally: developer/developing-locally.md
-  - Contributing changes: developer/contributing-changes.md
-  - Website: developer/website.md
-  - Install script: developer/install-script.md
-  - Using make: developer/using-make.md
-  - Releases: developer/releases.md
-  - Packaging: developer/packaging.md
-  - Security: developer/security.md
-  - Architecture: developer/architecture.md
-  - Building on top of chezmoi: developer/building-on-top-of-chezmoi.md
+      - warnf: reference/templates/functions/warnf.md
+    - GitHub functions:
+      - reference/templates/github-functions/index.md
+      - gitHubKeys: reference/templates/github-functions/gitHubKeys.md
+      - gitHubLatestRelease: reference/templates/github-functions/gitHubLatestRelease.md
+      - gitHubRelease: reference/templates/github-functions/gitHubRelease.md
+      - gitHubLatestReleaseAssetURL: reference/templates/github-functions/gitHubLatestReleaseAssetURL.md
+      - gitHubReleaseAssetURL: reference/templates/github-functions/gitHubReleaseAssetURL.md
+      - gitHubLatestTag: reference/templates/github-functions/gitHubLatestTag.md
+      - gitHubReleases: reference/templates/github-functions/gitHubReleases.md
+      - gitHubTags: reference/templates/github-functions/gitHubTags.md
+    - Init functions:
+      - reference/templates/init-functions/index.md
+      - exit: reference/templates/init-functions/exit.md
+      - promptBool: reference/templates/init-functions/promptBool.md
+      - promptBoolOnce: reference/templates/init-functions/promptBoolOnce.md
+      - promptChoice: reference/templates/init-functions/promptChoice.md
+      - promptChoiceOnce: reference/templates/init-functions/promptChoiceOnce.md
+      - promptInt: reference/templates/init-functions/promptInt.md
+      - promptIntOnce: reference/templates/init-functions/promptIntOnce.md
+      - promptMultichoice: reference/templates/init-functions/promptMultichoice.md
+      - promptMultichoiceOnce: reference/templates/init-functions/promptMultichoiceOnce.md
+      - promptString: reference/templates/init-functions/promptString.md
+      - promptStringOnce: reference/templates/init-functions/promptStringOnce.md
+      - stdinIsATTY: reference/templates/init-functions/stdinIsATTY.md
+      - writeToStdout: reference/templates/init-functions/writeToStdout.md
+    - 1Password functions:
+      - reference/templates/1password-functions/index.md
+      - onepassword: reference/templates/1password-functions/onepassword.md
+      - onepasswordDocument: reference/templates/1password-functions/onepasswordDocument.md
+      - onepasswordDetailsFields: reference/templates/1password-functions/onepasswordDetailsFields.md
+      - onepasswordItemFields: reference/templates/1password-functions/onepasswordItemFields.md
+      - onepasswordRead: reference/templates/1password-functions/onepasswordRead.md
+    - 1Password SDK functions:
+      - reference/templates/1password-sdk-functions/index.md
+      - onepasswordSDKItemsGet: reference/templates/1password-sdk-functions/onepasswordSDKItemsGet.md
+      - onepasswordSDKSecretsResolve: reference/templates/1password-sdk-functions/onepasswordSDKSecretsResolve.md
+    - AWS Secrets Manager functions:
+      - reference/templates/aws-secrets-manager-functions/index.md
+      - awsSecretsManager: reference/templates/aws-secrets-manager-functions/awsSecretsManager.md
+      - awsSecretsManagerRaw: reference/templates/aws-secrets-manager-functions/awsSecretsManagerRaw.md
+    - Azure Key Vault functions:
+      - azureKeyVault: reference/templates/azure-key-vault-functions/azureKeyVault.md
+    - Bitwarden functions:
+      - reference/templates/bitwarden-functions/index.md
+      - bitwarden: reference/templates/bitwarden-functions/bitwarden.md
+      - bitwardenAttachment: reference/templates/bitwarden-functions/bitwardenAttachment.md
+      - bitwardenAttachmentByRef: reference/templates/bitwarden-functions/bitwardenAttachmentByRef.md
+      - bitwardenFields: reference/templates/bitwarden-functions/bitwardenFields.md
+      - bitwardenSecrets: reference/templates/bitwarden-functions/bitwardenSecrets.md
+      - rbw: reference/templates/bitwarden-functions/rbw.md
+      - rbwFields: reference/templates/bitwarden-functions/rbwFields.md
+    - Dashlane functions:
+      - reference/templates/dashlane-functions/index.md
+      - dashlaneNote: reference/templates/dashlane-functions/dashlaneNote.md
+      - dashlanePassword: reference/templates/dashlane-functions/dashlanePassword.md
+    - Doppler functions:
+      - reference/templates/doppler-functions/index.md
+      - doppler: reference/templates/doppler-functions/doppler.md
+      - dopplerProjectJson: reference/templates/doppler-functions/dopplerProjectJson.md
+    - ejson functions:
+      - reference/templates/ejson-functions/index.md
+      - ejsonDecrypt: reference/templates/ejson-functions/ejsonDecrypt.md
+      - ejsonDecryptWithKey: reference/templates/ejson-functions/ejsonDecryptWithKey.md
+    - gopass functions:
+      - reference/templates/gopass-functions/index.md
+      - gopass: reference/templates/gopass-functions/gopass.md
+      - gopassRaw: reference/templates/gopass-functions/gopassRaw.md
+    - HCP Vault Secrets functions:
+      - reference/templates/hcp-vault-secrets-functions/index.md
+      - hcpVaultSecret: reference/templates/hcp-vault-secrets-functions/hcpVaultSecret.md
+      - hcpVaultSecretJson: reference/templates/hcp-vault-secrets-functions/hcpVaultSecretJson.md
+    - KeePassXC functions:
+      - reference/templates/keepassxc-functions/index.md
+      - keepassxc: reference/templates/keepassxc-functions/keepassxc.md
+      - keepassxcAttachment: reference/templates/keepassxc-functions/keepassxcAttachment.md
+      - keepassxcAttribute: reference/templates/keepassxc-functions/keepassxcAttribute.md
+    - Keeper functions:
+      - reference/templates/keeper-functions/index.md
+      - keeper: reference/templates/keeper-functions/keeper.md
+      - keeperDataFields: reference/templates/keeper-functions/keeperDataFields.md
+      - keeperFindPassword: reference/templates/keeper-functions/keeperFindPassword.md
+    - Keyring functions:
+      - keyring: reference/templates/keyring-functions/keyring.md
+    - LastPass functions:
+      - reference/templates/lastpass-functions/index.md
+      - lastpass: reference/templates/lastpass-functions/lastpass.md
+      - lastpassRaw: reference/templates/lastpass-functions/lastpassRaw.md
+    - pass functions:
+      - reference/templates/pass-functions/index.md
+      - pass: reference/templates/pass-functions/pass.md
+      - passFields: reference/templates/pass-functions/passFields.md
+      - passRaw: reference/templates/pass-functions/passRaw.md
+    - Passhole functions:
+      - reference/templates/passhole-functions/index.md
+      - passhole: reference/templates/passhole-functions/passhole.md
+    - Vault functions:
+      - vault: reference/templates/vault-functions/vault.md
+    - Generic secret functions:
+      - reference/templates/secret-functions/index.md
+      - secret: reference/templates/secret-functions/secret.md
+      - secretJSON: reference/templates/secret-functions/secretJSON.md
+  - Plugins: reference/plugins.md
+  - Release history: reference/release-history.md
+- Developer guide:
+  - developer-guide/index.md
+  - Testing: developer-guide/testing.md
+  - Contributing changes: developer-guide/contributing-changes.md
+  - Website: developer-guide/website.md
+  - Install script: developer-guide/install-script.md
+  - Using make: developer-guide/using-make.md
+  - Releases: developer-guide/releases.md
+  - Packaging: developer-guide/packaging.md
+  - Security: developer-guide/security.md
+  - Architecture: developer-guide/architecture.md
+  - Building on top of chezmoi: developer-guide/building-on-top-of-chezmoi.md
 - Links:
-  - Articles, podcasts, and videos: links/articles-podcasts-and-videos.md
-  - Dotfile repos using chezmoi: links/dotfile-repos-using-chezmoi.md
+  - Articles: links/articles.md
+  - Podcasts: links/podcasts.md
+  - Videos: links/videos.md
+  - Dotfile repos: links/dotfile-repos.md
   - Related software: links/related-software.md
+  - Social media: links/social-media.md
+- License: license.md
 
 markdown_extensions:
 - admonition
+- attr_list
 - meta
 - pymdownx.details
-- pymdownx.superfences
+- pymdownx.snippets:
+    base_path:
+      - assets/chezmoi.io/snippets
+      - snippets
+    check_paths: true
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+      format: !!python/name:mermaid2.fence_mermaid
 - pymdownx.tabbed:
     alternate_style: true
 
+hooks:
+- docs/hooks.py
+
 plugins:
+- mermaid2:
+    version: 11.4.1
+    arguments:
+        # test if its __palette_0/1 (dark) or __palette_1/2 (light)
+      theme: |
+        ^(JSON.parse(__md_get("__palette").index == 1)) ? 'dark' : 'light'
 - search
-- redirects:
-    redirect_maps:
-      # redirect links from previous Hugo-generated website
-      docs/architecture.md: developer/architecture.md
-      docs/comparison.md: comparison-table.md
-      docs/faq.md: user-guide/frequently-asked-questions/design.md
-      docs/how-to.md: user-guide/setup.md
-      docs/install.md: install.md
-      docs/media.md: links/articles-podcasts-and-videos.md
-      docs/quick-start.md: quick-start.md
-      docs/reference.md: reference/index.md
-      docs/related.md: links/related-software.md
-      docs/security.md: developer/security.md
-      docs/templating.md: user-guide/templating.md
-- mkdocs-simple-hooks:
-    hooks:
-      on_post_build: "docs.hooks:on_post_build"
+
+extra_javascript:
+- extra/refresh_on_toggle_dark_light.js
+
+watch:
+  - snippets

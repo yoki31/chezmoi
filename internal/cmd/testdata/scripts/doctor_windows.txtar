@@ -1,0 +1,7 @@
+[unix] skip 'Windows only'
+
+mksourcedir
+
+# test chezmoi doctor
+exec chezmoi doctor
+stdout '^ok\s+systeminfo\s+'

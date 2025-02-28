@@ -6,8 +6,8 @@ Dotfile managers give you the combined benefit of a consistent environment
 everywhere with an undo command and a restore from backup.
 
 As the core of our development environments become increasingly standardized
-(e.g. using git at both home and work), and we further customize them with our,
-at the same time we increasingly work in ephemeral environments like Docker
+(e.g. using git at both home and work), and we further customize them, at the
+same time we increasingly work in ephemeral environments like Docker
 containers, virtual machines, and GitHub Codespaces.
 
 In the same way that nobody would use an editor without an undo command, or
@@ -29,27 +29,40 @@ you work in.
     safe. Overall, I love the way Chezmoi fits so perfectly into the niche of
     managing dotfiles.
 
-    - [@mike_kasberg](https://www.mikekasberg.com/blog/2021/05/12/my-dotfiles-story.html)
+    — [@mike_kasberg][kasberg]
+
+!!! quote
+
+    I had initially been turned off when I first encountered [chezmoi], because
+    [chezmoi] seemed overkill for (what appeared to me) a simple task.
+
+    But the problem of managing a relatively small number of dotfiles across a
+    relatively small number of machines with small differences between them and
+    keeping them up to date proved to be _MUCH_ more complex than I imagined.
+    Copy things around by hand, and then later distributing them via source
+    control got hairy very quickly.
+
+    I finally realized all those features were absolutely necessary to manage
+    things sanely, and once I took some time to learn how to do things with
+    chezmoi, I have never looked back.
+
+    — [njt][njt]
 
 !!! quote
 
     Regular reminder that chezmoi is the best dotfile manager utility I've used
     and you can too
 
-    — [@mbbroberg](https://twitter.com/mbbroberg/status/1355644967625125892)
+    — @mbbroberg
 
 If you're using any of the following methods:
 
 * A custom shell script.
 
-* An existing dotfile manager like
-  [dotbot](https://github.com/anishathalye/dotbot),
-  [rcm](https://github.com/thoughtbot/rcm),
-  [homesick](https://github.com/technicalpickles/homesick),
-  [vcsh](https://github.com/RichiH/vcsh),
-  [yadm](https://yadm.io/), or [GNU Stow](https://www.gnu.org/software/stow/).
+* An existing dotfile manager like [dotbot][dotbot], [rcm][rcm],
+  [homesick][homesick], [vcsh][vcsh], [yadm][yadm], or [GNU Stow][stow].
 
-* A [bare git repo](https://www.atlassian.com/git/tutorials/dotfiles).
+* A [bare git repo][baregit].
 
 Then you've probably run into at least one of the following problems.
 
@@ -75,7 +88,7 @@ to machine differences, if needed.
     and more, but it was easier to keep it private for security, I'm ok mostly
     though. I'm using chezmoi and it's easier now
 
-    — [@sheldon_hull](https://twitter.com/sheldon_hull/status/1308139570597371907)
+    — @sheldon_hull
 
 If your system stores secrets in plain text, then you must be very careful about
 where you clone your dotfiles. If you clone them on your work machine then
@@ -96,7 +109,7 @@ machine.
     I've offloaded my dotfiles deployment from a homespun shell script to chezmoi.
     I'm quite happy with this decision.
 
-    — [@gotgenes](https://twitter.com/gotgenes/status/1251008845163319297)
+    — @gotgenes
 
 !!! quote
 
@@ -105,7 +118,7 @@ machine.
 
     in case you're wondering I have written 0 code
 
-    — [@buritica](https://twitter.com/buritica/status/1361062902451630089)
+    — @buritica
 
 !!! quote
 
@@ -114,7 +127,7 @@ machine.
     machines, added in secrets management and other useful dotfile tools, and
     tweaked and perfected it over years.
 
-    - [@mike_kasberg](https://www.mikekasberg.com/blog/2021/05/12/my-dotfiles-story.html)
+    - [@mike_kasberg][kasberg]
 
 If your system was written by you for your personal use, then it probably has
 the functionality that you needed when you wrote it. If you need more
@@ -122,11 +135,10 @@ functionality then you have to implement it yourself.
 
 chezmoi includes a huge range of battle-tested functionality out-of-the-box,
 including dry-run and diff modes, script execution, conflict resolution, Windows
-support, and much, much more. chezmoi is [used by thousands of
-people](https://github.com/twpayne/chezmoi/stargazers) and has a rich suite of
-both unit and integration tests. When you hit the limits of your existing
-dotfile management system, chezmoi already has a tried-and-tested solution ready
-for you to use.
+support, and much, much more. chezmoi is [used by thousands of people][stars]
+and has a rich suite of both unit and integration tests. When you hit the limits
+of your existing dotfile management system, chezmoi already has
+a tried-and-tested solution ready for you to use.
 
 ### ...if setting up your dotfiles requires more than one short command
 
@@ -140,3 +152,14 @@ need git installed. chezmoi provides one-line installs, pre-built binaries,
 packages for Linux and BSD distributions, Homebrew formulae, Scoop and
 Chocolatey support on Windows, and a initial config file generation mechanism to
 make installing your dotfiles on a new machine as painless as possible.
+
+[baregit]: https://www.atlassian.com/git/tutorials/dotfiles
+[dotbot]: https://github.com/anishathalye/dotbot
+[homesick]: https://github.com/technicalpickles/homesick
+[kasberg]: https://www.mikekasberg.com/blog/2021/05/12/my-dotfiles-story.html
+[njt]: https://news.ycombinator.com/item?id=31015669
+[rcm]: https://github.com/thoughtbot/rcm
+[stars]: https://github.com/twpayne/chezmoi/stargazers
+[stow]: https://www.gnu.org/software/stow/
+[vcsh]: https://github.com/RichiH/vcsh
+[yadm]: https://yadm.io/

@@ -1,0 +1,33 @@
+[windows] skip 'UNIX only'
+
+# test that chezmoi sets environment variables for scripts
+exec chezmoi apply
+stdout ^WORK=${WORK@R}$
+[darwin] stdout ^CHEZMOI_OS=darwin$
+[linux] stdout ^CHEZMOI_OS=linux$
+stdout ^CHEZMOI_SOURCE_DIR=${CHEZMOISOURCEDIR@R}/home$
+stdout ^CHEZMOI_VERBOSE=$
+stdout ^SCRIPTENV_KEY=SCRIPTENV_VALUE$
+
+# test that chezmoi passes along --verbose in scripts
+exec chezmoi apply --verbose
+stdout ^WORK=${WORK@R}$
+[darwin] stdout ^CHEZMOI_OS=darwin$
+[linux] stdout ^CHEZMOI_OS=linux$
+stdout ^CHEZMOI_SOURCE_DIR=${CHEZMOISOURCEDIR@R}/home$
+stdout ^CHEZMOI_VERBOSE=1$
+stdout ^SCRIPTENV_KEY=SCRIPTENV_VALUE$
+
+-- home/user/.config/chezmoi/chezmoi.toml --
+[scriptEnv]
+    SCRIPTENV_KEY = "SCRIPTENV_VALUE"
+-- home/user/.local/share/chezmoi/.chezmoiroot --
+home
+-- home/user/.local/share/chezmoi/home/run_print-variable.sh --
+#!/bin/sh
+
+echo "WORK=${WORK}"
+echo "CHEZMOI_OS=${CHEZMOI_OS}"
+echo "CHEZMOI_SOURCE_DIR=${CHEZMOI_SOURCE_DIR}"
+echo "SCRIPTENV_KEY=${SCRIPTENV_KEY}"
+echo "CHEZMOI_VERBOSE=${CHEZMOI_VERBOSE}"

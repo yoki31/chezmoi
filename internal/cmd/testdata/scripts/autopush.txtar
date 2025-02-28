@@ -1,0 +1,60 @@
+[!exec:echo] skip 'echo not found in $PATH'
+[!exec:git] skip 'git not found in $PATH'
+
+mkgitconfig
+mkhomedir golden
+mkhomedir
+
+# create a repo
+exec git init --bare $WORK/dotfiles.git
+exec chezmoi init file://$WORK/dotfiles.git
+
+# test that chezmoi add creates and pushes a commit
+exec chezmoi add $HOME${/}.file
+stdout ^git-auto-commit-pre$
+stdout ^git-auto-commit-post$
+stdout ^git-auto-push-pre$
+stdout ^git-auto-push-post$
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Add \.file'
+
+# test that chezmoi edit creates and pushes a commit
+exec chezmoi edit $HOME${/}.file
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Update \.file'
+
+# test that chezmoi chattr on a file creates and pushes a commit
+exec chezmoi chattr +executable $HOME${/}.file
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Change attributes of \.file'
+
+# test that chezmoi add on a directory creates and pushes a commit
+exec chezmoi add $HOME${/}.dir
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Add \.dir/file'
+
+# test that chezmoi chattr on a file in a directory creates and pushes a commit
+exec chezmoi chattr --debug +private $HOME${/}.dir/file
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Change attributes of \.dir'
+
+# test that chezmoi forget creates and pushes a commit
+exec chezmoi forget --force $HOME${/}.file
+exec git --git-dir=$WORK/dotfiles.git show HEAD
+stdout 'Remove \.file'
+
+-- home/user/.config/chezmoi/chezmoi.toml --
+[git]
+    autoPush = true
+[hooks.git-auto-commit.pre]
+    command = "echo"
+    args = ["git-auto-commit-pre"]
+[hooks.git-auto-commit.post]
+    command = "echo"
+    args = ["git-auto-commit-post"]
+[hooks.git-auto-push.pre]
+    command = "echo"
+    args = ["git-auto-push-pre"]
+[hooks.git-auto-push.post]
+    command = "echo"
+    args = ["git-auto-push-post"]

@@ -7,8 +7,7 @@ machines, for example your personal macOS laptop, your work Ubuntu desktop, and
 your work Linux laptop. You will want to keep much configuration the same
 across these, but also need machine-specific configurations for email
 addresses, credentials, etc. chezmoi achieves this functionality by using
-[`text/template`](https://pkg.go.dev/text/template) for the source state where
-needed.
+[`text/template`][go-template] for the source state where needed.
 
 For example, your home `~/.gitconfig` on your personal machine might look like:
 
@@ -33,49 +32,38 @@ machine to machine. For example, for your home machine:
     email = "me@home.org"
 ```
 
-!!! note
-
-    All variable names will be converted to lowercase. This is due to a feature
-    of a library used by chezmoi. See [this GitHub
-    issue](https://github.com/twpayne/chezmoi/issues/463) for more information.
-
 If you intend to store private data (e.g. access tokens) in
 `~/.config/chezmoi/chezmoi.toml`, make sure it has permissions `0600`.
 
-If you prefer, you can use any format supported by
-[Viper](https://github.com/spf13/viper) for your configuration file. This
-includes JSON, YAML, and TOML. Variable names must start with a letter and be
-followed by zero or more letters or digits.
+If you prefer, you can use JSON, JSONC, or YAML for your configuration file.
+Variable names must start with a letter and be followed by zero or more letters
+or digits.
 
-Then, add `~/.gitconfig` to chezmoi using the `--autotemplate` flag to turn it
-into a template and automatically detect variables from the `data` section of
-your `~/.config/chezmoi/chezmoi.toml` file:
+Then, add `~/.gitconfig` to chezmoi using the `--template` flag to turn it
+into a template:
 
-```console
-$ chezmoi add --autotemplate ~/.gitconfig
+```sh
+chezmoi add --template ~/.gitconfig
 ```
 
 You can then open the template (which will be saved in the file
 `~/.local/share/chezmoi/dot_gitconfig.tmpl`):
 
-```console
-$ chezmoi edit ~/.gitconfig
+```sh
+chezmoi edit ~/.gitconfig
 ```
 
-The file should look something like:
+Edit the file so it looks something like:
 
 ```toml title="~/.local/share/chezmoi/dot_gitconfig.tmpl"
 [user]
     email = {{ .email | quote }}
 ```
 
-To disable automatic variable detection, use the `--template` or `-T` option to
-`chezmoi add` instead of `--autotemplate`.
-
 Templates are often used to capture machine-specific differences. For example,
 in your `~/.local/share/chezmoi/dot_bashrc.tmpl` you might have:
 
-``` title="~/.local/share/chezmoi/dot_bashrc.tmpl"
+```text title="~/.local/share/chezmoi/dot_bashrc.tmpl"
 # common config
 export EDITOR=vi
 
@@ -87,31 +75,30 @@ export EDITOR=vi
 
 For a full list of variables, run:
 
-```console
-$ chezmoi data
+```sh
+chezmoi data
 ```
 
 For more advanced usage, you can use the full power of the
-[`text/template`](https://pkg.go.dev/text/template) language. chezmoi includes
-all of the text functions from [sprig](http://masterminds.github.io/sprig/) and
-its own [functions for interacting with password
-managers](/reference/templates/functions/).
+[`text/template`][go-template] language. chezmoi includes all of the text
+functions from [sprig][sprig] and its own [functions][functions] for interacting
+with [password managers][passman].
 
 Templates can be executed directly from the command line, without the need to
 create a file on disk, with the `execute-template` command, for example:
 
-```console
-$ chezmoi execute-template "{{ .chezmoi.os }}/{{ .chezmoi.arch }}"
+```sh
+chezmoi execute-template "{{ .chezmoi.os }}/{{ .chezmoi.arch }}"
 ```
 
-This is useful when developing or debugging templates.
+This is useful when developing or [debugging templates][debugging].
 
 Some password managers allow you to store complete files. The files can be
 retrieved with chezmoi's template functions. For example, if you have a file
 stored in 1Password with the UUID `uuid` then you can retrieve it with the
 template:
 
-```
+```text
 {{- onepasswordDocument "uuid" -}}
 ```
 
@@ -131,7 +118,7 @@ different machines, or to exclude certain files completely, you can create
 patterns that chezmoi should ignore, and are interpreted as templates. An
 example `.chezmoiignore` file might look like:
 
-``` title="~/.local/share/chezmoi/.chezmoiignore"
+```text title="~/.local/share/chezmoi/.chezmoiignore"
 README.md
 {{- if ne .chezmoi.hostname "work-laptop" }}
 .work # only manage .work on work-laptop
@@ -143,14 +130,20 @@ install `.work` if hostname is `work-laptop`" but chezmoi installs everything
 by default, so we have to turn the logic around and instead write "ignore
 `.work` unless the hostname is `work-laptop`".
 
-Patterns can be excluded by prefixing them with a `!`, for example:
+Patterns can be excluded by starting the line with a `!`, for example:
 
-``` title="~/.local/share/chezmoi/.chezmoiignore"
-f*
-!foo
+```text title="~/.local/share/chezmoi/.chezmoiignore"
+dir/f*
+!dir/foo
 ```
 
-will ignore all files beginning with an `f` except `foo`.
+will ignore all files beginning with an `f` in `dir` except for `dir/foo`.
+
+You can see what files chezmoi ignores with the command
+
+```sh
+chezmoi ignored
+```
 
 ## Handle different file locations on different systems with the same contents
 
@@ -158,12 +151,11 @@ If you want to have the same file contents in different locations on different
 systems, but maintain only a single file in your source state, you can use a
 shared template.
 
-Create the common file in the `.chezmoitemplates` directory in the source
-state. For example, create `.chezmoitemplates/file.conf`. The contents of this
-file are available in templates with the `template *name* .` function where
-*name* is the name of the file (`.` passes the current data to the template
-code in `file.conf`; see https://pkg.go.dev/text/template#hdr-Actions for
-details).
+Create the common file in the `.chezmoitemplates` directory in the source state.
+For example, create `.chezmoitemplates/file.conf`. The contents of this file are
+available in templates with the `template $NAME .` function where `$NAME` is the
+name of the file (`.` passes the current data to the template code in
+`file.conf`; see [`template` action][go-template-actions] for details).
 
 Then create files for each system, for example `Library/Application
 Support/App/file.conf.tmpl` for macOS and `dot_config/app/file.conf.tmpl` for
@@ -172,7 +164,7 @@ Linux. Both template files should contain `{{- template "file.conf" . -}}`.
 Finally, tell chezmoi to ignore files where they are not needed by adding lines
 to your `.chezmoiignore` file, for example:
 
-``` title="~/.local/share/chezmoi/.chezmoiignore"
+```text title="~/.local/share/chezmoi/.chezmoiignore"
 {{ if ne .chezmoi.os "darwin" }}
 Library/Application Support/App/file.conf
 {{ end }}
@@ -188,7 +180,7 @@ on any variable. For example, if you want `~/.bashrc` to be different on Linux
 and macOS you would create a file in the source state called `dot_bashrc.tmpl`
 containing:
 
-``` title="~/.local/share/chezmoi/dot_bashrc.tmpl"
+```text title="~/.local/share/chezmoi/dot_bashrc.tmpl"
 {{ if eq .chezmoi.os "darwin" -}}
 # macOS .bashrc contents
 {{ else if eq .chezmoi.os "linux" -}}
@@ -198,43 +190,50 @@ containing:
 
 However, if the differences between the two versions are so large that you'd
 prefer to use completely separate files in the source state, you can achieve
-this using a symbolic link template. Create the following files:
+this with the `include` template function.
 
-``` title="~/.local/share/chezmoi/symlink_dot_bashrc.tmpl"
-.bashrc_{{ .chezmoi.os }}
-```
+Create the following files:
 
-```bash title="~/.local/share/chezmoi/dot_bashrc_darwin"
+```bash title="~/.local/share/chezmoi/.bashrc_darwin"
 # macOS .bashrc contents
 ```
 
-```bash title="~/.local/share/chezmoi/dot_bashrc_linux"
+```bash title="~/.local/share/chezmoi/.bashrc_linux"
 # Linux .bashrc contents
 ```
 
-``` title="~/.local/share/chezmoi/.chezmoiignore"
-{{ if ne .chezmoi.os "darwin" }}
-.bashrc_darwin
-{{ end }}
-{{ if ne .chezmoi.os "linux" }}
-.bashrc_linux
-{{ end }}
+```text title="~/.local/share/chezmoi/dot_bashrc.tmpl"
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   include ".bashrc_darwin" -}}
+{{- else if eq .chezmoi.os "linux" -}}
+{{-   include ".bashrc_linux" -}}
+{{- end -}}
 ```
 
-This will make `~/.bashrc` a symlink to `.bashrc_darwin` on `darwin` and to
-`.bashrc_linux` on `linux`. The `.chezmoiignore` configuration ensures that
-only the OS-specific `.bashrc_os` file will be installed on each OS.
+This will cause `~/.bashrc` to contain `~/.local/share/chezmoi/.bashrc_darwin`
+on macOS and `~/.local/share/chezmoi/.bashrc_linux` on Linux.
 
-### Without using symlinks
+If you want to use templates within your templates, then, instead, create:
 
-The same thing can be achieved using the include function.
-
-``` title="~/.local/share/chezmoi/dot_bashrc.tmpl"
-{{ if eq .chezmoi.os "darwin" }}
-{{   include ".bashrc_darwin" }}
-{{ end }}
-{{ if eq .chezmoi.os "linux" }}
-{{   include ".bashrc_linux" }}
-{{ end }}
+```text title="~/.local/share/chezmoi/.chezmoitemplates/bashrc_darwin.tmpl"
+# macOS .bashrc template contents
 ```
 
+```text title="~/.local/share/chezmoi/.chezmoitemplates/bashrc_linux.tmpl"
+# Linux .bashrc template contents
+```
+
+```text title="~/.local/share/chezmoi/dot_bashrc.tmpl"
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   template "bashrc_darwin.tmpl" . -}}
+{{- else if eq .chezmoi.os "linux" -}}
+{{-   template "bashrc_linux.tmpl" . -}}
+{{- end -}}
+```
+
+[go-template]: https://pkg.go.dev/text/template
+[sprig]: http://masterminds.github.io/sprig/
+[functions]: /reference/templates/functions/index.md
+[debugging]: /user-guide/templating.md#testing-templates
+[go-template-actions]: https://pkg.go.dev/text/template#hdr-Actions
+[passman]: /user-guide/password-managers/index.md

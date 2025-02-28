@@ -1,0 +1,27 @@
+mockcommand bin/pass
+[windows] unix2dos golden/pass-raw
+
+# test pass template function
+exec chezmoi execute-template '{{ pass "misc/example.com" }}'
+stdout ^examplepassword$
+
+# test passFields template function
+exec chezmoi execute-template '{{ (passFields "misc/example.com").login }}'
+stdout ^examplelogin$
+
+# test pass template function
+exec chezmoi execute-template '{{ passRaw "misc/example.com" }}'
+cmp stdout golden/pass-raw
+
+-- bin/pass.yaml --
+responses:
+- args: 'show misc/example.com'
+  response: |
+    examplepassword
+    login: examplelogin
+default:
+  response: 'pass: invalid command: $*'
+  exitCode: 1
+-- golden/pass-raw --
+examplepassword
+login: examplelogin

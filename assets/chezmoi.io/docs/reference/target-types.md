@@ -13,7 +13,7 @@ performs actions in ASCII order of their target name.
 
 Files are represented by regular files in the source state. The `encrypted_`
 attribute determines whether the file in the source state is encrypted. The
-`executable_` attribute will set the executable bits in the the target state,
+`executable_` attribute will set the executable bits in the target state,
 and the `private_` attribute will clear all group and world permissions. The
 `readonly_` attribute will clear all write permission bits in the target state.
 Files with the `.tmpl` suffix will be interpreted as templates. If the target
@@ -30,9 +30,16 @@ unchanged.
 ### Modify file
 
 Files with the `modify_` prefix are treated as scripts that modify an existing
-file. The contents of the existing file (which maybe empty if the existing file
-does not exist or is empty) are passed to the script's standard input, and the
-new contents are read from the scripts standard output.
+file.
+
+If the file contains a line with the text `chezmoi:modify-template` then that
+line is removed and the rest of the script is executed template with the
+existing file's contents passed as a string in `.chezmoi.stdin`. The result of
+executing the template are the new contents of the file.
+
+Otherwise, the contents of the existing file (which maybe empty if the existing
+file does not exist or is empty) are passed to the script's standard input, and
+the new contents are read from the script's standard output.
 
 ### Remove entry
 
@@ -85,47 +92,12 @@ directory that exists and is a directory.
     A script in `~/.local/share/chezmoi/dir/run_script` will be run with a working
     directory of `~/dir`.
 
-### Scripts on Windows
+chezmoi sets a number of `CHEZMOI*` environment variables when running scripts,
+corresponding to commonly-used template data variables. Extra environment
+variables can be set in the `env` or `scriptEnv` configuration variables.
 
-<!-- FIXME: some of the following needs to be moved to the how-to -->
-
-The execution of scripts on Windows depends on the script's file extension.
-Windows will natively execute scripts with a `.bat`, `.cmd`, `.com`, and `.exe`
-extensions. Other extensions require an interpreter, which must be in your
-`%PATH%`.
-
-The default script interpreters are:
-
-| Extension | Command      | Arguments |
-| --------- | ------------ | --------- |
-| `.pl`     | `perl`       | *none*    |
-| `.py`     | `python`     | *none*    |
-| `.ps1`    | `powershell` | `-NoLogo` |
-| `.rb`     | `ruby`       | *none*    |
-
-Script interpreters can be added or overridden with the
-`interpreters.`*extension* section in the configuration file.
-
-!!! note
-
-    The leading `.` is dropped from *extension*, for example to specify the
-    interpreter for `.pl` files you configure `interpreters.pl`.
-
-!!! example
-
-    To change the Python interpreter to `C:\Python39\python.exe` and add a
-    Tcl/Tk interpreter, include the following in your config file:
-
-    ```toml title="~/.config/chezmoi/chezmoi.toml"
-    [interpreters.py]
-        command = 'C:\Python39\python.exe'
-    [interpreters.tcl]
-        command = "tclsh"
-    ```
-
-If the script in the source state is a template (with a `.tmpl` extension), then
-chezmoi will strip the `.tmpl` extension and use the next remaining extension to
-determine the interpreter to use.
+Scripts are executed using an interpreter, if configured. See the [section on
+interpreters][interpreters].
 
 ## `symlink` mode
 
@@ -134,3 +106,5 @@ By default, chezmoi will create regular files and directories. Setting `mode =
 symlinks by default, i.e. `chezmoi apply` will make dotfiles symlinks to files
 in the source directory if the target is a regular file and is not
 encrypted, executable, private, or a template.
+
+[interpreters]: /reference/configuration-file/interpreters.md

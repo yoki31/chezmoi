@@ -1,44 +1,75 @@
 # `execute-template` [*template*...]
 
-Execute *template*s. This is useful for testing templates or for calling
-chezmoi from other scripts. *templates* are interpreted as literal templates,
-with no whitespace added to the output between arguments. If no templates are
-specified, the template is read from stdin.
+Execute *template*s. This is useful for [testing templates][testing] or for
+calling chezmoi from other scripts. *templates* are interpreted as literal
+templates, with no whitespace added to the output between arguments. If no
+templates are specified, the template is read from stdin.
 
-## `--init`, `-i`
+## Flags
+
+### `-i`, `--init`
 
 Include simulated functions only available during `chezmoi init`.
 
-## `--promptBool` *pairs*
+### `--left-delimiter` *delimiter*
 
-Simulate the `promptBool` function with a function that returns values from
-*pairs*. *pairs* is a comma-separated list of *prompt*`=`*value* pairs. If
+Set the left template delimiter.
+
+### `--promptBool` *pairs*
+
+Simulate the `promptBool` template function with a function that returns values
+from *pairs*. *pairs* is a comma-separated list of *prompt*`=`*value* pairs. If
 `promptBool` is called with a *prompt* that does not match any of *pairs*, then
 it returns false.
 
-## `--promptInt` *pairs*
+### `--promptChoice` *pairs*
 
-Simulate the `promptInt` function with a function that returns values from
-*pairs*. *pairs* is a comma-separated list of *prompt*`=`*value* pairs. If
+Simulate the `promptChoice` template function with a function that returns
+values from *pairs*. *pairs* is a comma-separated list of *prompt*`=`*value*
+pairs. If `promptChoice` is called with a *prompt* that does not match any of
+*pairs*, then it returns *prompt* unchanged.
+
+### `--promptInt` *pairs*
+
+Simulate the `promptInt` template function with a function that returns values
+from *pairs*. *pairs* is a comma-separated list of *prompt*`=`*value* pairs. If
 `promptInt` is called with a *prompt* that does not match any of *pairs*, then
 it returns zero.
 
-## `--promptString`, `-p` *pairs*
+### `--promptMultichoice` *pairs*
 
-Simulate the `promptString` function with a function that returns values from
-*pairs*. *pairs* is a comma-separated list of *prompt*`=`*value* pairs. If
-`promptString` is called with a *prompt* that does not match any of *pairs*,
-then it returns *prompt* unchanged.
+Simulate the `promptMultichoice` template function with a function that returns
+values from *pairs*. *pairs* is a comma-separated list of *prompt*`=`*value*
+pairs. If `promptMultichoice` is called with a *prompt* that does not match any
+of *pairs*, then it returns *prompt* as an array.
 
-## `--stdinisatty` *bool*
+### `-p`, `--promptString` *pairs*
+
+Simulate the `promptString` template function with a function that returns
+values from *pairs*. *pairs* is a comma-separated list of *prompt*`=`*value*
+pairs. If `promptString` is called with a *prompt* that does not match any of
+*pairs*, then it returns *prompt* unchanged.
+
+### `--right-delimiter` *delimiter*
+
+Set the right template delimiter.
+
+### `--stdinisatty` *bool*
 
 Simulate the `stdinIsATTY` function by returning *bool*.
 
-!!! example
+### `--with-stdin`
 
-    ```console
-    $ chezmoi execute-template '{{ .chezmoi.sourceDir }}'
-    $ chezmoi execute-template '{{ .chezmoi.os }}' / '{{ .chezmoi.arch }}'
-    $ echo '{{ .chezmoi | toJson }}' | chezmoi execute-template
-    $ chezmoi execute-template --init --promptString email=me@home.org < ~/.local/share/chezmoi/.chezmoi.toml.tmpl
-    ```
+If run with arguments, then set `.chezmoi.stdin` to the contents of the standard
+input.
+
+## Examples
+
+```sh
+chezmoi execute-template '{{ .chezmoi.sourceDir }}'
+chezmoi execute-template '{{ .chezmoi.os }}' / '{{ .chezmoi.arch }}'
+echo '{{ .chezmoi | toJson }}' | chezmoi execute-template
+chezmoi execute-template --init --promptString email=me@home.org < ~/.local/share/chezmoi/.chezmoi.toml.tmpl
+```
+
+[testing]: /user-guide/templating.md#testing-templates

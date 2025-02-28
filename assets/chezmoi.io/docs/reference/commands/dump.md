@@ -3,17 +3,35 @@
 Dump the target state of *target*s. If no targets are specified, then the
 entire target state.
 
-## `-f`, `--format` `json`|`yaml`
+## Common flags
 
-Set the output format.
+### `-x`, `--exclude` *types*
 
-## `-i`, `--include` *types*
+--8<-- "common-flags/exclude.md"
 
-Only include entries of type *types*.
+### `-f`, `--format` `json`|`yaml`
 
-!!! example
+--8<-- "common-flags/format.md"
 
-    ```console
-    $ chezmoi dump ~/.bashrc
-    $ chezmoi dump --format=yaml
-    ```
+### `-i`, `--include` *types*
+
+--8<-- "common-flags/include.md"
+
+### `--init`
+
+--8<-- "common-flags/init.md"
+
+### `-P`, `--parent-dirs`
+
+--8<-- "common-flags/parent-dirs.md"
+
+### `-r`, `--recursive`
+
+--8<-- "common-flags/recursive.md:default-true"
+
+## Examples
+
+```sh
+chezmoi dump ~/.bashrc
+chezmoi dump --format=yaml
+```

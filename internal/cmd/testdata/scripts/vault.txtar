@@ -1,0 +1,31 @@
+mockcommand bin/vault
+
+# test vault template function
+exec chezmoi execute-template '{{ (vault "secret/examplesecret").data.data.password }}'
+stdout ^examplepassword$
+
+-- bin/vault.yaml --
+responses:
+- args: 'kv get -format=json secret/examplesecret'
+  response: |
+    {
+      "request_id": "d90311b6-2f3f-768e-656c-ce768e773b09",
+      "lease_id": "",
+      "lease_duration": 0,
+      "renewable": false,
+      "data": {
+        "data": {
+          "password": "examplepassword"
+        },
+        "metadata": {
+          "created_time": "2021-01-11T21:48:46.961974384Z",
+          "deletion_time": "",
+          "destroyed": false,
+          "version": 1
+        }
+      },
+      "warnings": null
+    }
+default:
+  response: 'Usage: vault <command> [args]'
+  exitCode: 127

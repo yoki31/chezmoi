@@ -1,0 +1,18 @@
+mockcommand bin/ph
+
+# test passhole template function
+stdin golden/stdin
+exec chezmoi execute-template --no-tty '{{ passhole "example.com" "password" }}'
+stdout examplepassword
+
+-- bin/ph.yaml --
+responses:
+- args: '--version'
+  response: '1.9.9'
+- args: '--password - show --field password example.com'
+  response: 'examplepassword'
+default:
+  response: 'ph: error: argument command: invalid choice:'
+  exitCode: 1
+-- golden/stdin --
+fakepassword

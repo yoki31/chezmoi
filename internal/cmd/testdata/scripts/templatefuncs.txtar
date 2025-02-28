@@ -1,0 +1,304 @@
+[unix] chmod 755 bin/chezmoi-output-test
+[unix] chmod 755 bin/generate-color-formats
+[unix] chmod 755 bin/ioreg
+[unix] chmod 755 bin/executable
+[windows] unix2dos bin/chezmoi-output-test.cmd
+
+symlink $HOME/symlink -> dir
+
+# test comment template function
+exec chezmoi execute-template '{{ "line1\nline2" | comment "# " }}'
+rmfinalnewline golden/comment
+cmp stdout golden/comment
+
+# test completion template function
+exec chezmoi execute-template '{{ completion "zsh" }}'
+stdout '^# zsh completion for chezmoi'
+
+# test deleteValueAtPath template function
+exec chezmoi execute-template '{{ dict "a" (dict "b" (dict "c" 1 "d" 2)) | deleteValueAtPath "a.b.c" | toJson }}'
+rmfinalnewline golden/deleteValueAtPath
+cmp stdout golden/deleteValueAtPath
+
+# test eqFold template function
+exec chezmoi execute-template '{{ eqFold "foo" "Foo" "FOO" }}'
+stdout '^true$'
+
+# test that the fromJson template function can deserialize JSON values
+exec chezmoi execute-template '{{ fromJson "1" }}'
+stdout '^1$'
+
+# test that the fromJson template function can deserialize JSON arrays
+exec chezmoi execute-template '{{ fromJson "[1, 2]" }}'
+stdout '^\[1 2\]$'
+
+# test fromJsonc template function
+stdin golden/example.jsonc
+exec chezmoi execute-template --with-stdin '{{ fromJsonc .chezmoi.stdin | toJson }}'
+stdout '{"key":1}'
+
+# test glob template function
+exec chezmoi execute-template '{{ glob "*.txt" | join "\n" }}{{ "\n" }}'
+cmp stdout golden/glob
+
+# test hexDecode template function
+exec chezmoi execute-template '{{ "6578616d706c65" | hexDecode }}'
+stdout '^example$'
+
+# test hexEncode template function
+exec chezmoi execute-template '{{ "example" | hexEncode }}'
+stdout '^6578616d706c65$'
+
+# test ioreg template function
+[darwin] exec chezmoi execute-template '{{ index ioreg "IOKitBuildVersion" }}'
+[darwin] stdout 'Darwin Kernel Version'
+
+# test include template function with absolute path
+exec chezmoi execute-template '{{ joinPath (env "HOME") ".include" | include }}'
+cmp stdout golden/include-abspath
+
+# test include template function with relative paths
+exec chezmoi execute-template '{{ include ".include" }}'
+cmp stdout golden/include-relpath
+
+# test includeTemplate template function
+exec chezmoi execute-template '{{ includeTemplate ".template" "data" }}'
+stdout ^data$
+
+# test includeTemplate template function searches .chezmoitemplates
+exec chezmoi execute-template '{{ includeTemplate "template" "data" }}'
+stdout ^data$
+
+# test joinPath template function
+exec chezmoi execute-template '{{ joinPath "a" "b" }}'
+stdout a${/}b
+
+# test jq template function
+exec chezmoi execute-template '{{ dict "key" "value" | jq ".key" | first }}'
+stdout ^value$
+
+# test isExecutable template function positive test case
+[unix] exec chezmoi execute-template '{{ isExecutable "bin/executable" }}'
+[windows] exec chezmoi execute-template '{{ isExecutable "bin/executable.cmd" }}'
+stdout ^true$
+
+# test isExecutable template function negative test case
+exec chezmoi execute-template '{{ isExecutable "bin/not-executable" }}'
+stdout ^false$
+
+# test findExecutable template function to find in specified script varargs - success
+[!windows] exec chezmoi execute-template '{{ findExecutable "echo" (list "/lib" "/bin" "/usr/bin") }}'
+[!windows] stdout ^/bin/echo$
+
+# test findOneExecutable template function to find in specified script varargs - success
+[!windows] exec chezmoi execute-template '{{ findOneExecutable (list "chezmoish" "echo") (list "/lib" "/bin" "/usr/bin") }}'
+[!windows] stdout ^/bin/echo$
+
+# test findExecutable template function to find in specified script varargs - failure
+[!windows] exec chezmoi execute-template '{{ findExecutable "echo" (list "/lib") }}'
+[!windows] stdout ^$
+
+# test findExecutable template function to find in specified script - success
+[!windows] exec chezmoi execute-template '{{ findExecutable "echo" (list "/lib" "/bin" "/usr/bin") }}'
+[!windows] stdout ^/bin/echo$
+
+# test findExecutable template function to find in specified script - failure
+[!windows] exec chezmoi execute-template '{{ findExecutable "echo" (list "/lib") }}'
+[!windows] stdout ^$
+
+# test findExecutable template function to find in specified script - success with extension
+[windows] exec chezmoi execute-template '{{ findExecutable "git.exe" (list "c:\\windows\\system32" "c:\\windows\\system64" "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0" "C:\\Program Files\\Git\\cmd") }}'
+[windows] stdout 'git'
+
+# test findExecutable template function to find in specified script - success without extension
+[windows] exec chezmoi execute-template '{{ findExecutable "git" (list "c:\\windows\\system32" "c:\\windows\\system64" "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0" "C:\\Program Files\\Git\\cmd") }}'
+[windows] stdout 'git'
+
+# test findExecutable template function to find in specified script - failure
+[windows] exec chezmoi execute-template '{{ findExecutable "asdf" (list "c:\\windows\\system32" "c:\\windows\\system64" "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0" "C:\\Program Files\\Git\\cmd") }}'
+[windows] stdout '^$'
+
+# test lookPath template function to find in PATH
+exec chezmoi execute-template '{{ lookPath "go" }}'
+stdout go$exe
+
+# test lookPath template function to check if file exists
+exec chezmoi execute-template '{{ lookPath "/non-existing-file" }}'
+! stdout .
+
+# test lstat template function
+exec chezmoi execute-template '{{ (joinPath .chezmoi.homeDir "symlink" | lstat).type }}'
+stdout ^symlink$
+
+# test mozillaInstallHash template function
+exec chezmoi execute-template '{{ mozillaInstallHash "/Applications/Firefox.app/Contents/MacOS" }}'
+stdout 2656FF1E876E9973
+
+# test the output and fromJson template functions
+[unix] exec chezmoi execute-template '{{ $red := output "generate-color-formats" "#ff0000" | fromJson }}{{ $red.rgb.r }}'
+[unix] stdout '^255$'
+
+# test the outputList and fromJson template functions
+[unix] exec chezmoi execute-template '{{ $red := outputList "generate-color-formats" (list "#ff0000" ) | fromJson }}{{ $red.rgb.r }}'
+[unix] stdout '^255$'
+
+# test that the output function returns an error if the command fails
+[unix] ! exec chezmoi execute-template '{{ output "false" }}'
+[unix] stderr 'error calling output: .*/false: exit status 1'
+
+# test pruneEmptyDicts template function
+exec chezmoi execute-template '{{ dict "key1" "value1" "key2" (dict) | pruneEmptyDicts | toJson }}'
+rmfinalnewline golden/pruneEmptyDicts
+cmp stdout golden/pruneEmptyDicts
+
+# test replaceAllRegex template function
+exec chezmoi execute-template '{{ "foo bar baz" | replaceAllRegex "ba" "BA" }}'
+stdout 'foo BAr BAz'
+
+# test setValueAtPath template function
+exec chezmoi execute-template '{{ dict | setValueAtPath "key1.key2" "value2" | toJson }}'
+rmfinalnewline golden/setValueAtPath
+cmp stdout golden/setValueAtPath
+
+# test toIni template function
+exec chezmoi execute-template '{{ dict "key" "value" "section" (dict "subkey" "subvalue") | toIni }}'
+cmp stdout golden/toIni
+
+# test stat template function
+exec chezmoi execute-template '{{ (joinPath .chezmoi.homeDir "symlink" | stat).isDir }}'
+stdout true
+
+# test that the output template function returns a command's output
+exec chezmoi execute-template '{{ output "chezmoi-output-test" "arg" | trim }}'
+stdout arg
+
+# test that the output template function fails if the command fails
+! exec chezmoi execute-template '{{ output "false" }}'
+
+# test fromToml template function
+exec chezmoi execute-template '{{ (fromToml "[section]\nkey = \"value\"").section.key }}'
+stdout '^value$'
+
+# test toToml template function
+exec chezmoi execute-template '{{ dict "key" "value" | toToml }}'
+stdout '^key = .value.$'
+
+# test that the toPrettyJson template function does not escape HTML characters, see https://github.com/golang/go/blob/7a6ddbb425218b2f4866478d0c673ba82c8438e6/src/encoding/json/encode.go#L48-L55
+exec chezmoi execute-template '{{ dict "a" (dict "b" "&") | toPrettyJson "    " }}'
+cmp stdout golden/toPrettyJson
+
+# test fromYaml template function
+exec chezmoi execute-template '{{ (fromYaml "key1: value1\nkey2: value2").key2 }}'
+stdout '^value2$'
+
+# test toYaml template function
+exec chezmoi execute-template '{{ dict "key" "value" | toYaml }}'
+stdout '^key: value$'
+
+# test that the overridden splitList function's output is compatible with quoteList
+exec chezmoi execute-template '{{ "a b" | splitList " " | quoteList }}'
+stdout '["a" "b"]'
+
+-- bin/chezmoi-output-test --
+#!/bin/sh
+
+echo "$*"
+-- bin/chezmoi-output-test.cmd --
+@echo off
+setlocal
+set out=%*
+set out=%out:\=%
+echo %out%
+endlocal
+-- bin/executable --
+#!/bin/sh
+-- bin/executable.cmd --
+-- bin/generate-color-formats --
+#!/bin/sh
+
+case "$1" in
+"#ff0000")
+    cat <<EOF
+{
+  "hex": {
+    "rgb": "ff0000",
+    "bgr": "0000ff",
+    "r": "ff",
+    "g": "00",
+    "b": "00"
+  },
+  "rgb": {
+    "r": 255,
+    "g": 0,
+    "b": 0
+  },
+  "dec": {
+    "r": 1.000,
+    "g": 0.000,
+    "b": 0.000
+  }
+}
+EOF
+    ;;
+*)
+    echo "Usage: $0 <hex-color>"
+    ;;
+esac
+-- bin/ioreg --
+#!/bin/sh
+
+echo '<?xml version="1.0" encoding="UTF-8"?>'
+echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+echo '<plist version="1.0">'
+echo '<dict>'
+echo '        <key>IOKitBuildVersion</key>'
+echo '        <string>Darwin Kernel Version 21.1.0: Wed Oct 13 17:33:24 PDT 2021; root:xnu-8019.41.5~1/RELEASE_ARM64_T8101</string>'
+echo '</dict>'
+echo '</plist>'
+-- bin/not-executable --
+-- golden/comment --
+# line1
+# line2
+-- golden/deleteValueAtPath --
+{"a":{"b":{"d":2}}}
+-- golden/example.jsonc --
+{
+  "key": 1, // Comment
+}
+-- golden/expected --
+255
+-- golden/glob --
+file1.txt
+file2.txt
+-- golden/include-abspath --
+# contents of .include
+-- golden/include-relpath --
+# contents of .local/share/chezmoi/.include
+-- golden/pruneEmptyDicts --
+{"key1":"value1"}
+-- golden/setValueAtPath --
+{"key1":{"key2":"value2"}}
+-- golden/toIni --
+key = value
+
+[section]
+subkey = subvalue
+-- golden/toPrettyJson --
+{
+    "a": {
+        "b": "&"
+    }
+}
+-- home/user/.include --
+# contents of .include
+-- home/user/.local/share/chezmoi/.chezmoitemplates/template --
+{{ . }}
+-- home/user/.local/share/chezmoi/.include --
+# contents of .local/share/chezmoi/.include
+-- home/user/.local/share/chezmoi/.template --
+chezmoi:template:left-delimiter=[[ right-delimiter=]]
+[[ . ]]
+-- home/user/.local/share/chezmoi/template --
+-- home/user/dir/.keep --
+-- home/user/file1.txt --
+-- home/user/file2.txt --

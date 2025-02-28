@@ -2,8 +2,8 @@
 
 Edit the configuration file.
 
-!!! example
+## Examples
 
-    ```console
-    $ chezmoi edit-config
-    ```
+```sh
+chezmoi edit-config
+```

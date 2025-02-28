@@ -1,69 +1,93 @@
+run:
+  go: '1.24'
+
 linters:
   enable:
   - asciicheck
   - bidichk
   - bodyclose
-  - contextcheck
-  - deadcode
+  - canonicalheader
+  - containedctx
+  - copyloopvar
   - decorder
-  - depguard
   - dogsled
-  - dupl
+  - dupword
   - durationcheck
+  - err113
   - errcheck
   - errchkjson
   - errname
   - errorlint
-  - exportloopref
+  - exptostd
+  - fatcontext
   - forbidigo
   - forcetypeassert
   - gci
+  - gocheckcompilerdirectives
+  - gochecksumtype
   - gocritic
   - godot
-  - goerr113
   - gofmt
   - gofumpt
   - goimports
-  - gomoddirectives
   - gomodguard
   - goprintffuncname
-  - gosec
   - gosimple
+  - gosmopolitan
   - govet
-  - ifshort
+  - grouper
+  - iface
   - importas
+  - inamedparam
   - ineffassign
-  - ireturn
-  - lll
+  - interfacebloat
+  - intrange
+  - loggercheck
   - makezero
+  - mirror
   - misspell
   - nilerr
+  - nilnesserr
   - noctx
   - nolintlint
+  - nosprintfhostport
+  - perfsprint
   - prealloc
   - predeclared
   - promlinter
+  - protogetter
+  - reassign
   - revive
   - rowserrcheck
+  - sloglint
+  - spancheck
   - sqlclosecheck
   - staticcheck
-  - structcheck
   - stylecheck
+  - tagalign
   - tagliatelle
-  - tenv
+  - testableexamples
+  - testifylint
   - thelper
   - typecheck
   - unconvert
   - unparam
   - unused
-  - varcheck
+  - usestdlibvars
+  - usetesting
   - wastedassign
   - whitespace
+  - zerologlint
   disable:
+  - asasalint
+  - contextcheck
   - cyclop
+  - depguard
+  - dupl
   - exhaustive
-  - exhaustivestruct
+  - exhaustruct
   - funlen
+  - ginkgolinter
   - gochecknoglobals
   - gochecknoinits
   - gocognit
@@ -71,14 +95,19 @@ linters:
   - gocyclo
   - godox
   - goheader
-  - gomnd
+  - gomoddirectives
+  - gosec
+  - ireturn
+  - lll
   - maintidx
-  - maligned
+  - musttag
   - nakedret
   - nestif
   - nilnil
   - nlreturn
+  - nonamedreturns
   - paralleltest
+  - recvcheck
   - testpackage
   - tparallel
   - varnamelen
@@ -88,41 +117,58 @@ linters:
 linters-settings:
   forbidigo:
     forbid:
+    - ^archive/zip\.
+    - ^compress/gzip\.
     - ^fmt\.Print.*$
     - ^ioutil\..*$
-    - ^os\.(DirEntry|FileInfo|FileMode|Is.*|Mode.*)$
+    - ^os\.(DirEntry|ErrExist|ErrNotExist|FileInfo|FileMode|Is.*|Mode.*)$
+  gci:
+    sections:
+    - standard
+    - default
+    - prefix(github.com/twpayne/chezmoi)
+  gocritic:
+    enable-all: true
+    disabled-checks:
+    - emptyFallthrough
+    - hugeParam
+    - rangeValCopy
+    - unnamedResult
+    - whyNoLint
   gofumpt:
     extra-rules: true
+    module-path: github.com/twpayne/chezmoi
   goimports:
     local-prefixes: github.com/twpayne/chezmoi
-  ireturn:
-    allow:
-    - anon
-    - empty
-    - error
-    - github.com/go-git/go-git/v5/plumbing/format/diff\.File
-    - github.com/go-git/go-git/v5/plumbing/format/diff\.Patch
-    - github.com/mitchellh/mapstructure\.DecodeHookFunc
-    - github.com/twpayne/chezmoi/v2/pkg/chezmoi\.ActualStateEntry
-    - github.com/twpayne/chezmoi/v2/pkg/chezmoi\.Encryption
-    - github.com/twpayne/chezmoi/v2/pkg/chezmoi\.SourceStateEntry
-    - github.com/twpayne/chezmoi/v2/pkg/chezmoi\.TargetStateEntry
-    - github.com/twpayne/go-vfs/v4\.FS
-    - stdlib
+  govet:
+    disable:
+    - fieldalignment
+    - shadow
+    enable-all: true
   misspell:
     locale: US
+    ignore-words:
+    - ackward
+  stylecheck:
+    checks:
+    - all
 
 issues:
+  include:
+  - EXC0011 # include issues about comments from `stylecheck`
   exclude-rules:
   - linters:
-    - goerr113
-    text: "do not define dynamic errors, use wrapped static errors instead"
+    - err113
+    text: do not define dynamic errors, use wrapped static errors instead
+  - linters:
+    - revive
+    text: unused-parameter
   - linters:
     - forbidigo
-    - gosec
-    - lll
     path: ^internal/cmds/
   - linters:
-    - gosec
-    - lll
-    path: "_test\\.go$"
+    - forcetypeassert
+    path: _test\.go$
+  - linters:
+    - forbidigo
+    path: assets/scripts/generate-commit.go

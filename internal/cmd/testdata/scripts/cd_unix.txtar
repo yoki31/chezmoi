@@ -1,0 +1,66 @@
+[windows] skip 'UNIX only'
+
+chmod 755 bin/shell
+
+# test that chezmoi cd creates source directory if needed
+exec chezmoi cd
+exists $CHEZMOISOURCEDIR
+grep ${CHEZMOISOURCEDIR@R} pwd.log
+rm pwd.log
+
+# test that chezmoi cd changes into an existing directory and sets the CHEZMOI environment variable
+exec chezmoi cd
+grep CHEZMOI=1 env.log
+rm env.log
+grep ${CHEZMOISOURCEDIR@R} pwd.log
+rm pwd.log
+
+# test chat chezmoi cd with an argument changes into the corresponding source directory
+exec chezmoi cd $HOME${/}.dir
+grep ${CHEZMOISOURCEDIR@R}/dot_dir pwd.log
+rm pwd.log
+
+# test that chezmoi cd works when $SHELL environment variable contains spaces
+env SHELL='shell arg1'
+exec chezmoi cd
+stdout '^shell arg1$'
+
+# test that chezmoi cd will not try to change to a non-directory
+! exec chezmoi cd $HOME${/}.file
+stderr 'not a directory'
+
+# test that cd will not try to change to a non-existent directory
+! exec chezmoi cd $HOME${/}.notexist
+stderr 'not managed'
+
+chhome home2/user
+
+# test chezmoi cd with shell command set in config file overrides $SHELL environment variable
+exec chezmoi cd
+stdout '^shell arg2$'
+
+env SHELL=$WORK/bin/shell
+
+chhome home3/user
+
+# test that chezmoi cd $HOME with .chezmoiroot changes into .chezmoiroot
+exec chezmoi cd $HOME
+grep ${CHEZMOISOURCEDIR@R}/home pwd.log
+rm pwd.log
+
+-- bin/shell --
+#!/bin/sh
+
+echo CHEZMOI=$CHEZMOI > $WORK/env.log
+pwd > $WORK/pwd.log
+echo shell $*
+-- home/user/.dir/.keep --
+-- home/user/.local/share/chezmoi/dot_dir/.keep --
+-- home/user/.local/share/chezmoi/dot_file --
+-- home2/user/.config/chezmoi/chezmoi.toml --
+[cd]
+    command = "shell"
+    args = ["arg2"]
+-- home3/user/.local/share/chezmoi/.chezmoiroot --
+home
+-- home3/user/.local/share/chezmoi/home/.keep --

@@ -1,0 +1,63 @@
+mockcommand bin/keeper
+
+# test keeper template function
+exec chezmoi execute-template '{{ (keeper "QOahgRH_dSTvSvhRBqzCzQ").record_uid }}'
+stdout '^QOahgRH_dSTvSvhRBqzCzQ$'
+
+# test keeperDataFields template function
+exec chezmoi execute-template '{{ index (keeperDataFields "QOahgRH_dSTvSvhRBqzCzQ").password 0 }}'
+stdout ^mypassword$
+
+# test keeperFindPassword template function
+exec chezmoi execute-template '{{ keeperFindPassword "Example" }}'
+stdout ^mypassword$
+
+-- bin/keeper.yaml --
+responses:
+- args: 'get --format=json QOahgRH_dSTvSvhRBqzCzQ --config /path/to/config.json'
+  response: |
+    {
+      "record_uid": "QOahgRH_dSTvSvhRBqzCzQ",
+      "data": {
+        "title": "Example",
+        "type": "login",
+        "fields": [
+          {
+            "type": "login",
+            "value": [
+              "mylogin"
+            ]
+          },
+          {
+            "type": "password",
+            "value": [
+              "mypassword"
+            ]
+          },
+          {
+            "type": "url",
+            "value": []
+          },
+          {
+            "type": "fileRef",
+            "value": []
+          },
+          {
+            "type": "oneTimeCode",
+            "value": []
+          }
+        ],
+        "custom": []
+      }
+    }
+- args: 'find-password Example --config /path/to/config.json'
+  response: 'mypassword'
+default:
+  response: |
+    Commands:
+      search                           ... Search the vault. Can use a regular expression.
+
+    Type 'command -h' to display help on command
+-- home/user/.config/chezmoi/chezmoi.toml --
+[keeper]
+    args = ["--config", "/path/to/config.json"]

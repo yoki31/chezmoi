@@ -3,9 +3,9 @@ package main
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/alecthomas/assert/v2"
 
-	"github.com/twpayne/chezmoi/v2/pkg/cmd"
+	"github.com/twpayne/chezmoi/v2/internal/cmd"
 )
 
 func TestMain(t *testing.T) {

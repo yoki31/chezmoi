@@ -1,0 +1,112 @@
+name: installer
+on:
+  pull_request:
+    branches:
+    - master
+  push:
+    branches:
+    - master
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  SHA: ${{ github.event_name == 'push' && github.sha || github.event.pull_request.head.sha }}
+jobs:
+  changes:
+    runs-on: ubuntu-22.04
+    outputs:
+      sh: ${{ steps.filter.outputs.sh }}
+      ps1: ${{ steps.filter.outputs.ps1 }}
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - id: filter
+      uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+      with:
+        filters: |
+          shared: &shared
+          - '.github/workflows/installer.yml'
+          sh:
+          - *shared
+          - 'assets/scripts/install*.sh'
+          - 'internal/cmds/generate-install.sh/install.sh.tmpl'
+          ps1:
+          - *shared
+          - 'assets/scripts/install.ps1'
+  misspell:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: reviewdog/action-misspell@18ffb61effb93b47e332f185216be7e49592e7e1
+      with:
+        locale: US
+        ignore: ackward
+  test-install-sh:
+    if: ${{ needs.changes.outputs.sh == 'true' }}
+    strategy:
+      matrix:
+        os:
+        - macos-13
+        - ubuntu-22.04
+        #- windows-2022 # fails with "debug http_download_curl received HTTP status 000"
+    needs: changes
+    runs-on: ${{ matrix.os }}
+    env:
+      BINARY: ${{ matrix.os == 'windows-2022' && 'bin/chezmoi.exe' || 'bin/chezmoi' }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - name: test-${{ matrix.os }}-local
+      shell: bash
+      run: |
+        rm -f ${{ env.BINARY }}
+        sh assets/scripts/install.sh -d
+        ${{ env.BINARY }} --version
+    - name: test-${{ matrix.os }}-url
+      shell: bash
+      run: |
+        rm -f ${{ env.BINARY }}
+        sh -c "$(curl -fsLS https://raw.githubusercontent.com/twpayne/chezmoi/${{ env.SHA }}/assets/scripts/install.sh)" -- -d
+        ${{ env.BINARY }} --version
+  test-install-ps1:
+    if: ${{ needs.changes.outputs.ps1 == 'true' }}
+    strategy:
+      matrix:
+        os:
+        - macos-13
+        - ubuntu-22.04
+        - windows-2022
+    needs: changes
+    runs-on: ${{ matrix.os }}
+    env:
+      BINARY: ${{ matrix.os == 'windows-2022' && 'bin/chezmoi.exe' || 'bin/chezmoi' }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - name: test-${{ matrix.os }}-local-pwsh
+      shell: pwsh
+      run: |
+        if (Test-Path -Path ${{ env.BINARY }}) { Remove-Item -Force ${{ env.BINARY }} }
+        assets/scripts/install.ps1 -d
+        ${{ env.BINARY }} --version
+    - name: test-${{ matrix.os }}-local-powershell
+      if: matrix.os == 'windows-2022'
+      shell: powershell
+      run: |
+        if (Test-Path -Path ${{ env.BINARY }}) { Remove-Item -Force ${{ env.BINARY }} }
+        assets/scripts/install.ps1 -d
+        ${{ env.BINARY }} --version
+    - name: test-${{ matrix.os }}-url-pwsh
+      shell: pwsh
+      run: |
+        if (Test-Path -Path ${{ env.BINARY }}) { Remove-Item -Force ${{ env.BINARY }} }
+        iex "&{$(irm 'https://raw.githubusercontent.com/twpayne/chezmoi/${{ env.SHA }}/assets/scripts/install.ps1')} -d"
+        ${{ env.BINARY }} --version
+    - name: test-${{ matrix.os }}-url-powershell
+      if: matrix.os == 'windows-2022'
+      shell: powershell
+      run: |
+        if (Test-Path -Path ${{ env.BINARY }}) { Remove-Item -Force ${{ env.BINARY }} }
+        iex "&{$(irm 'https://raw.githubusercontent.com/twpayne/chezmoi/${{ env.SHA }}/assets/scripts/install.ps1')} -d"
+        ${{ env.BINARY }} --version

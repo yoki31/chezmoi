@@ -1,7 +1,12 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
 project_name: chezmoi
 
 before:
   hooks:
+  - go run assets/scripts/generate-commit.go -o COMMIT
   - go mod download all
 
 builds:
@@ -13,12 +18,12 @@ builds:
   goarch:
   - amd64
   ldflags:
-  - '-s'
-  - '-w'
-  - '-X main.version={{ .Version }}'
-  - '-X main.commit={{ .Commit }}'
-  - '-X main.date={{ .Date }}'
-  - '-X main.builtBy=goreleaser'
+  - -s
+  - -w
+  - -X main.version={{ .Version }}
+  - -X main.commit={{ .Commit }}
+  - -X main.date={{ .Date }}
+  - -X main.builtBy=goreleaser
 - id: chezmoi-cgo-musl
   env:
   - CC=/usr/bin/musl-gcc
@@ -28,44 +33,54 @@ builds:
   goarch:
   - amd64
   ldflags:
-  - '-s'
-  - '-w'
-  - '-X main.version={{ .Version }}'
-  - '-X main.commit={{ .Commit }}'
-  - '-X main.date={{ .Date }}'
-  - '-X main.builtBy=goreleaser'
-  - '-linkmode external'
-  - '--extldflags "-static"'
+  - -s
+  - -w
+  - -X main.version={{ .Version }}
+  - -X main.commit={{ .Commit }}
+  - -X main.date={{ .Date }}
+  - -X main.builtBy=goreleaser
+  - -linkmode external
+  - --extldflags "-static"
 - id: chezmoi-nocgo
   env:
   - CGO_ENABLED=0
   goos:
+  - android
   - darwin
   - freebsd
-  - illumos
   - linux
   - openbsd
-  - solaris
   - windows
   goarch:
-  - 386
+  - '386'
   - amd64
   - arm
   - arm64
+  - loong64
+  - mips64
+  - mips64le
   - ppc64
   - ppc64le
+  - riscv64
+  - s390x
   goarm:
-  - ""
+  - ''
   ldflags:
-  - '-s'
-  - '-w'
-  - '-X main.version={{ .Version }}'
-  - '-X main.commit={{ .Commit }}'
-  - '-X main.date={{ .Date }}'
-  - '-X main.builtBy=goreleaser'
+  - -s
+  - -w
+  - -X main.version={{ .Version }}
+  - -X main.commit={{ .Commit }}
+  - -X main.date={{ .Date }}
+  - -X main.builtBy=goreleaser
   ignore:
+  - goos: android
+    goarch: '386'
+  - goos: android
+    goarch: amd64
+  - goos: android
+    goarch: arm
   - goos: darwin
-    goarch: 386
+    goarch: '386'
   - goos: linux
     goarch: amd64
 
@@ -77,11 +92,18 @@ archives:
   - LICENSE
   - README.md
   - completions/*
-  replacements:
-    386: i386
+  name_template: >-
+    {{- .ProjectName }}_
+    {{- .Version }}_
+    {{- .Os }}_
+    {{- if eq .Arch "386" }}i386
+    {{- else if eq .Arch "mips64" }}mips64_hardfloat
+    {{- else if eq .Arch "mips64le" }}mips64le_hardfloat
+    {{- else }}{{ .Arch }}{{ end -}}
   format_overrides:
   - goos: windows
-    format: zip
+    formats:
+    - zip
 - id: glibc
   builds:
   - chezmoi-cgo-glibc
@@ -89,7 +111,7 @@ archives:
   - LICENSE
   - README.md
   - completions/*
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}-glibc_{{ .Arch }}"
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}-glibc_{{ .Arch }}'
 - id: musl
   builds:
   - chezmoi-cgo-musl
@@ -97,31 +119,49 @@ archives:
   - LICENSE
   - README.md
   - completions/*
-  name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}-musl_{{ .Arch }}"
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}-musl_{{ .Arch }}'
 
 changelog:
-  sort: asc
+  groups:
+  - title: Features
+    regexp: ^.*?feat(\([[:word:]]+\))??!?:.+$
+    order: 0
+  - title: Fixes
+    regexp: ^.*?fix(\([[:word:]]+\))??!?:.+$
+    order: 1
+  - title: Documentation updates
+    regexp: ^.*?docs?(\([[:word:]]+\))??!?:.+$
+    order: 2
+  - title: Other
+    order: 999
   filters:
     exclude:
-    - "^chore:"
-    - "^chore\\(deps\\):"
-    - "^docs:"
-    - "^test:"
-    - Merge pull request
-    - Merge branch
+    - ^.*?chore(\(.*\))??!?:.+$
 
 checksum:
+  extra_files:
+  - glob: ./dist/chezmoi-nocgo_darwin_amd64_v1/chezmoi
+    name_template: chezmoi-darwin-amd64
+  - glob: ./dist/chezmoi-nocgo_darwin_arm64_v8.0/chezmoi
+    name_template: chezmoi-darwin-arm64
+  - glob: ./dist/chezmoi-cgo-glibc_linux_amd64_v1/chezmoi
+    name_template: chezmoi-linux-amd64
+  - glob: ./dist/chezmoi-cgo-musl_linux_amd64_v1/chezmoi
+    name_template: chezmoi-linux-amd64-musl
+  - glob: ./dist/chezmoi-nocgo_windows_amd64_v1/chezmoi.exe
+    name_template: chezmoi-windows-amd64.exe
 
 nfpms:
 - builds:
   - chezmoi-cgo-glibc
   - chezmoi-nocgo
-  vendor: "Tom Payne <twpayne@gmail.com>"
-  homepage: "https://chezmoi.io/"
-  maintainer: "Tom Payne <twpayne@gmail.com>"
-  description: "Manage your dotfiles across multiple diverse machines, securely."
+  vendor: Tom Payne <twpayne@gmail.com>
+  homepage: https://chezmoi.io/
+  maintainer: Tom Payne <twpayne@gmail.com>
+  description: Manage your dotfiles across multiple diverse machines, securely.
   license: MIT
   formats:
+  - archlinux
   - deb
   - rpm
   dependencies:
@@ -129,70 +169,166 @@ nfpms:
   bindir: /usr/bin
   overrides:
     deb:
-      file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-      replacements:
-        386: i386
-        arm: armel
+      file_name_template: >-
+        {{- .ProjectName }}_
+        {{- .Version }}_
+        {{- .Os }}_
+        {{- if eq .Arch "386" }}i386
+        {{- else if eq .Arch "arm" }}armel
+        {{- else }}{{ .Arch }}{{ end -}}
       contents:
       - src: completions/chezmoi-completion.bash
         dst: /usr/share/bash-completion/completions/chezmoi
       - src: completions/chezmoi.fish
-        dst: /usr/share/fish/completions/chezmoi.fish
+        dst: /usr/share/fish/vendor_completions.d/chezmoi.fish
       - src: completions/chezmoi.zsh
         dst: /usr/share/zsh/vendor-completions/_chezmoi
     rpm:
-      file_name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Arch }}"
-      replacements:
-        amd64: x86_64
-        386: i686
-        arm: armhfp
-        arm64: aarch64
+      file_name_template: >-
+        {{- .ProjectName }}-
+        {{- .Version }}-
+        {{- if eq .Arch "amd64" }}x86_64
+        {{- else if eq .Arch "386" }}i686
+        {{- else if eq .Arch "arm" }}armhfp
+        {{- else if eq .Arch "arm64" }}aarch64
+        {{- else }}{{ .Arch }}{{ end -}}
       contents:
       - src: completions/chezmoi-completion.bash
         dst: /usr/share/bash-completion/completions/chezmoi
       - src: completions/chezmoi.fish
-        dst: /usr/share/fish/completions/chezmoi.fish
+        dst: /usr/share/fish/vendor_completions.d/chezmoi.fish
       - src: completions/chezmoi.zsh
         dst: /usr/share/zsh/site-functions/_chezmoi
 - id: apks
   builds:
   - chezmoi-cgo-musl
   - chezmoi-nocgo
-  vendor: "Tom Payne <twpayne@gmail.com>"
-  homepage: "https://chezmoi.io/"
-  maintainer: "Tom Payne <twpayne@gmail.com>"
-  description: "Manage your dotfiles across multiple diverse machines, securely."
+  vendor: Tom Payne <twpayne@gmail.com>
+  homepage: https://chezmoi.io/
+  maintainer: Tom Payne <twpayne@gmail.com>
+  description: Manage your dotfiles across multiple diverse machines, securely.
   license: MIT
   formats:
   - apk
   bindir: /usr/bin
 
-release:
+chocolateys:
+- owners: twpayne
+  authors: Tom Payne
+  project_url: https://chezmoi.io
+  url_template: https://github.com/twpayne/chezmoi/releases/download/v{{ .Version }}/{{ .ArtifactName }}
+  icon_url: https://github.com/twpayne/chezmoi/raw/master/assets/images/logo-144px.png
+  copyright: Copyright (c) 2018-{{ .Now.Format "2006" }} Tom Payne
+  license_url: https://github.com/twpayne/chezmoi/blob/master/LICENSE
+  project_source_url: https://github.com/twpayne/chezmoi
+  docs_url: https://chezmoi.io
+  bug_tracker_url: https://github.com/twpayne/chezmoi/issues
+  tags: configuration dotfile dotfiles
+  summary: Manage your dotfiles across multiple diverse machines, securely.
+  description: |
+    ## What does chezmoi do?
 
-scoop:
-  bucket:
+    chezmoi helps you manage your personal configuration files (dotfiles, like `~/.gitconfig`) across multiple machines.
+
+    chezmoi is helpful if you have spent time customizing the tools you use (e.g. shells, editors, and version control systems) and want to keep machines running different accounts (e.g. home and work) and/or different operating systems (e.g. Linux, macOS, and Windows) in sync, while still being able to easily cope with differences from machine to machine.
+
+    chezmoi scales from the trivial (e.g. copying a few dotfiles onto a Raspberry Pi, development container, or virtual machine) to complex long-lived multi-machine development environments (e.g. keeping any number of home and work, Linux, macOS, and Windows machines in sync). In all cases you only need to maintain a single source of truth (a single branch in git) and getting started only requires adding a single binary to your machine (which you can do with `curl`, `wget`, or `scp`).
+
+    chezmoi has strong support for security, allowing you to manage secrets (e.g. passwords, access tokens, and private keys) securely and seamlessly using a password manager and/or encrypt whole files with your favorite encryption tool.
+  release_notes: '{{ .Changelog }}'
+  api_key: '{{ .Env.CHOCOLATEY_API_KEY }}'
+
+release:
+  extra_files:
+  - glob: ./assets/cosign/cosign.pub
+    name_template: chezmoi_cosign.pub
+  - glob: ./dist/chezmoi-nocgo_darwin_amd64_v1/chezmoi
+    name_template: chezmoi-darwin-amd64
+  - glob: ./dist/chezmoi-nocgo_darwin_arm64_v8.0/chezmoi
+    name_template: chezmoi-darwin-arm64
+  - glob: ./dist/chezmoi-cgo-glibc_linux_amd64_v1/chezmoi
+    name_template: chezmoi-linux-amd64
+  - glob: ./dist/chezmoi-cgo-musl_linux_amd64_v1/chezmoi
+    name_template: chezmoi-linux-amd64-musl
+  - glob: ./dist/chezmoi-nocgo_windows_amd64_v1/chezmoi.exe
+    name_template: chezmoi-windows-amd64.exe
+
+scoops:
+- repository:
     owner: twpayne
     name: scoop-bucket
+    token: '{{ .Env.SCOOP_GITHUB_TOKEN }}'
   commit_author:
     name: Tom Payne
     email: twpayne@gmail.com
-  homepage: "https://chezmoi.io"
-  description: "Manage your dotfiles across multiple diverse machines, securely."
+  homepage: https://chezmoi.io
+  description: Manage your dotfiles across multiple diverse machines, securely.
   license: MIT
+
+signs:
+- cmd: cosign
+  stdin: '{{ .Env.COSIGN_PWD }}'
+  args:
+  - sign-blob
+  - --key=assets/cosign/cosign.key
+  - --output-signature=${signature}
+  - --yes
+  - ${artifact}
+  artifacts: checksum
 
 snapcrafts:
 - builds:
   - chezmoi-cgo-glibc
   - chezmoi-nocgo
-  summary: "Manage your dotfiles across multiple diverse machines, securely."
-  description: "Manage your dotfiles across multiple diverse machines, securely."
+  summary: Manage your dotfiles across multiple diverse machines, securely.
+  description: Manage your dotfiles across multiple diverse machines, securely.
   publish: true
   grade: stable
   confinement: classic
+  license: MIT
   apps:
     chezmoi:
+      command: chezmoi
       completer: completions/chezmoi-completion.bash
 
 source:
   enabled: true
   prefix_template: '{{ .ProjectName }}-{{ .Version }}/'
+  files:
+  - COMMIT
+
+winget:
+- name: chezmoi
+  publisher: twpayne
+  publisher_url: https://github.com/twpayne
+  short_description: Manage your dotfiles across multiple diverse machines, securely.
+  license: MIT
+  commit_author:
+    name: Tom Payne
+    email: twpayne@gmail.com
+  homepage: https://chezmoi.io
+  license_url: https://github.com/twpayne/chezmoi/blob/master/LICENSE
+  copyright: Copyright (c) 2018-{{ .Now.Format "2006" }} Tom Payne
+  release_notes: '{{ .Changelog }}'
+  release_notes_url: https://github.com/twpayne/chezmoi/releases/tag/{{ .Tag }}
+  tags:
+  - cli
+  - configuration
+  - dotbot
+  - dotfile
+  - dotfiles
+  - stow
+  - yadm
+  author: Tom Payne
+  publisher_support_url: https://github.com/twpayne/chezmoi/issues
+  repository:
+    owner: twpayne
+    name: winget-pkgs
+    branch: chezmoi-{{ .Version }}
+    token: '{{ .Env.WINGET_GITHUB_TOKEN }}'
+    pull_request:
+      enabled: true
+      base:
+        owner: microsoft
+        name: winget-pkgs
+        branch: master

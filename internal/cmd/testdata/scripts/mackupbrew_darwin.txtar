@@ -1,0 +1,62 @@
+[!darwin] skip 'Darwin only'
+
+# simulate a brew installation of mackup
+chmod 755 opt/homebrew/Cellar/mackup/0.8.32/libexec/bin/mackup
+mkdir opt/homebrew/Cellar/mackup/0.8.32/bin opt/homebrew/bin
+symlink opt/homebrew/Cellar/mackup/0.8.32/bin/mackup -> ../libexec/bin/mackup
+symlink opt/homebrew/bin/mackup -> ../Cellar/mackup/0.8.32/bin/mackup
+env PATH=$WORK/opt/homebrew/bin:$PATH
+
+# test that chezmoi mackup add adds normal dotfiles
+exec chezmoi mackup add curl
+cmp $CHEZMOISOURCEDIR/dot_curlrc golden/dot_curlrc
+
+# test that chezmoi mackup add adds XDG configuration files
+exec chezmoi mackup add vscode
+cmp $CHEZMOISOURCEDIR/dot_config/Code/User/settings.json golden/settings.json
+
+# test that chezmoi mackup add --secrets=error generates an error when adding a file with a secret and does not add the file
+! exec chezmoi mackup add --secrets=error wget
+stderr 'Uncovered a GitHub Personal Access Token, potentially leading to unauthorized repository access and sensitive content exposure\.'
+stderr 'Detected a Generic API Key, potentially exposing access to various services and sensitive operations\.'
+! exists $CHEZMOISOURCEDIR/dot_wgetrc
+
+-- golden/dot_curlrc --
+# contents of .curlrc
+-- golden/settings.json --
+# contents of .config/Code/User/settings.json
+-- home/user/.config/Code/User/settings.json --
+# contents of .config/Code/User/settings.json
+-- home/user/.curlrc --
+# contents of .curlrc
+-- home/user/.mackup/curl.cfg --
+[application]
+name = Curl
+
+[configuration_files]
+.netrc
+.curlrc
+-- home/user/.wgetrc --
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_0123456789ABCDEF0123456789ABCDEF01234
+-- opt/homebrew/Cellar/mackup/0.8.32/libexec/bin/mackup --
+# mackup binary
+-- opt/homebrew/Cellar/mackup/0.8.32/libexec/lib/python3.9/site-packages/mackup/applications/vscode.cfg --
+[application]
+name = Visual Studio Code
+
+[configuration_files]
+Library/Application Support/Code/User/snippets
+Library/Application Support/Code/User/keybindings.json
+Library/Application Support/Code/User/settings.json
+
+[xdg_configuration_files]
+Code/User/snippets
+Code/User/keybindings.json
+Code/User/settings.json
+-- opt/homebrew/Cellar/mackup/0.8.32/libexec/lib/python3.9/site-packages/mackup/applications/wget.cfg --
+[application]
+name = Wget
+
+[configuration_files]
+.wgetrc
+.wget-hsts

@@ -2,14 +2,14 @@
 
 The following flags are global but only relevant for developers and debugging.
 
-## `--cpu-profile` *filename*
+## Flags
 
-Write a [Go CPU profile](https://blog.golang.org/pprof) to *filename*.
+### `--cpu-profile` *filename*
 
-## `--debug`
+Write a [Go CPU profile][profile] to *filename*.
+
+### `--debug`
 
 Log information helpful for debugging.
 
-## `--gops`
-
-Enable the [gops](https://github.com/google/gops) agent.
+[profile]: https://blog.golang.org/pprof
